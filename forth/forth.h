@@ -6,9 +6,34 @@ extern "C"{
 #endif
 
 #include "stddef.h"
+
+#define FORTH_FLAGS_IMMEDIATE (1 << 0)
+
+#define FORTH_STATUS_NOTFOUND (1 << 0)
+#define FORTH_STATUS_ZERO_DIVISION (1 << 1)
+#define FORTH_STATUS_STACK_UNDERFLOW (1 << 2)
+#define FORTH_STATUS_INPUT_ERROR        (1 << 3)
+#define FORTH_STATUS_EXECUTE_ERROR        (1 << 4)
+#define FORTH_STATUS_EXECUTE_EXIT        (1 << 5)
+#define FORTH_STATUS_WRONG_STATE        (1 << 6)
+
+#define FORTH_FUNC_REG(arg_unitname, arg_flags, arg_func, arg_name, arg_next) \
+static const forth_unit_t arg_unitname = \
+{                                               \
+    .flags = arg_flags,                             \
+    .name = arg_name,                                \
+    .next = arg_next,                               \
+    .cfa = (ptrdiff_t*)arg_unitname.data,                    \
+    .data = {                                   \
+        arg_func,                      \
+        forth_exit                              \
+    }                                           \
+}                                              \
+
+
 typedef struct forth forth_t;
 typedef struct forth_unit forth_unit_t;
-typedef void (*forth_input_t)(char ch);
+typedef char (*forth_input_t)();
 typedef void (*forth_output_t)(const char* data, unsigned int len);
 typedef void (*forth_function_t)(forth_t* vm);
 
@@ -16,35 +41,55 @@ typedef struct forth_unit
 {
     size_t flags;
     const char* name;
-    struct forth_unit* next;
+    const struct forth_unit* next;
+    ptrdiff_t* cfa;
     void* data[];
 }forth_unit_t;
 
 typedef struct forth_init
 {
-    unsigned int sp_cells;
-    unsigned int rsp_cells;
     ptrdiff_t* full_memory;
     unsigned int full_memory_cells;
+    unsigned int sp_cells;
+    unsigned int rsp_cells;
+    unsigned int tib_bytes;
 }forth_init_t;
+
+typedef enum
+{
+    FORTH_STATE_INTERPRET,
+    FORTH_STATE_COMPILE
+}forth_state_t;
 
 typedef struct forth
 {
-    ptrdiff_t* sp;
-    ptrdiff_t* rsp;
     ptrdiff_t* memory;
     ptrdiff_t* sp_start;
     ptrdiff_t* rsp_start;
     forth_output_t output_cb;
     forth_input_t input_cb;
+
+    ptrdiff_t* sp;
+    ptrdiff_t* rsp;
+    ptrdiff_t* pc;
+    char* here;
+    forth_unit_t* current;
+    forth_unit_t* context;
+    char* tib;
+    unsigned int in;
+    int status;
+    char base;
+    char* source;
+    forth_state_t state;
 }forth_t;
 
 int forth_init(forth_t* vm, forth_init_t* init_desc);
-int forth_process(forth_t* vm, char ch);  
+int forth_process(forth_t* vm);  
 int forth_add_function(forth_t* vm, const char* name, forth_function_t func, size_t flags);
 int forth_add_variable(forth_t* vm, const char* name, ptrdiff_t default_value);
 int forth_add_constant(forth_t* vm, const char* name, ptrdiff_t value);
 int forth_reg_output_cb(forth_t* vm, forth_output_t cb);
+int forth_reg_input_cb(forth_t* vm, forth_input_t cb);
 #ifdef __cplusplus
 }
 #endif

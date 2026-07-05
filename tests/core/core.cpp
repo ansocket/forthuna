@@ -1,23 +1,167 @@
 #include "gtest/gtest.h"
-namespace {
-TEST(FactorialTest, Negative) {
-  // This test is named "Negative", and belongs to the "FactorialTest"
-  // test case.
-  EXPECT_EQ(1, 1);
-  // <TechnicalDetails>
-  //
-  // EXPECT_EQ(expected, actual) is the same as
-  //
-  //   EXPECT_TRUE((expected) == (actual))
-  //
-  // except that it will print both the expected value and the actual
-  // value when the assertion fails.  This is very helpful for
-  // debugging.  Therefore in this case EXPECT_EQ is preferred.
-  //
-  // On the other hand, EXPECT_TRUE accepts any Boolean expression,
-  // and is thus more general.
-  //
-  // </TechnicalDetails>
-}
+#include "forth.h"
 
+namespace {
+TEST(forth_core, Init) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  EXPECT_EQ(vm.sp, vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, simple) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "1 2 +";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,3);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+}
+TEST(forth_core, execute) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "1 2 ' + EXECUTE";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,3);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, colon) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ": BEBE 1 2 + ; BEBE : KOKO 4 BEBE + ; ' KOKO EXECUTE +";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,10);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, c_variable) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "VAR1 @ VAR2 @ 22 VAR2 ! 33 VAR1 ! VAR1 @ VAR2 @";
+    return input_string[i++];
+        });
+    forth_add_variable(&vm,"VAR1",10);
+    forth_add_variable(&vm,"VAR2",20);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,22);
+  EXPECT_EQ(*vm.sp++,33);
+  EXPECT_EQ(*vm.sp++,20);
+  EXPECT_EQ(*vm.sp++,10);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, c_constant) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "CONST1 CONST2 +";
+    return input_string[i++];
+        });
+    forth_add_constant(&vm,"CONST1",10);
+    forth_add_constant(&vm,"CONST2",20);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,30);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
 }

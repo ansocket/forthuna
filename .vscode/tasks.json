@@ -8,6 +8,12 @@
             "type": "shell",
             "command": "cmake --build tests/build",
             "problemMatcher": []
+        },
+        {
+            "label": "Run tests",
+            "type": "shell",
+            "command": "./tests/build/core",
+            "problemMatcher": []
         }
     ]
 }
