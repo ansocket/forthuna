@@ -48,7 +48,7 @@ int forth_add_function(forth_t* vm, const char* name, forth_function_t func, siz
     var->flags = flags;
     var->name = name;
     var->next = vm->current;
-    var->cfa = var->data;
+    var->cfa = (ptrdiff_t*)var->data;
     vm->current = var;
     var->data[0] = func;
     var->data[1] = forth_exit;
@@ -61,7 +61,7 @@ int forth_add_variable(forth_t* vm, const char* name, ptrdiff_t default_value)
     forth_unit_t* var = (forth_unit_t*)vm->here;
     var->flags = 0;
     var->name = name;
-    var->cfa = var->data;
+    var->cfa = (ptrdiff_t*)var->data;
     var->next = vm->current;
     vm->current = var;
     var->data[0] = forth_variable_cmd;
@@ -76,11 +76,26 @@ int forth_add_constant(forth_t* vm, const char* name, ptrdiff_t value)
     forth_unit_t* var = (forth_unit_t*)vm->here;
     var->flags = 0;
     var->name = name;
-    var->cfa = var->data;
+    var->cfa = (ptrdiff_t*)var->data;
     var->next = vm->current;
     vm->current = var;
     var->data[0] = forth_push;
     var->data[1] = (void*)value;
+    var->data[2] = forth_exit;
+    vm->here += sizeof(forth_unit_t) + sizeof(size_t)*3;
+    return 0;
+}
+int forth_add_variable_ptr(forth_t* vm, const char* name, ptrdiff_t* ptr)
+{
+    forth_align(vm);
+    forth_unit_t* var = (forth_unit_t*)vm->here;
+    var->flags = 0;
+    var->name = name;
+    var->cfa = (ptrdiff_t*)var->data;
+    var->next = vm->current;
+    vm->current = var;
+    var->data[0] = forth_push;
+    var->data[1] = (void*)ptr;
     var->data[2] = forth_exit;
     vm->here += sizeof(forth_unit_t) + sizeof(size_t)*3;
     return 0;

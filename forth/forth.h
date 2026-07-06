@@ -17,6 +17,13 @@ extern "C"{
 #define FORTH_STATUS_EXECUTE_EXIT        (1 << 5)
 #define FORTH_STATUS_WRONG_STATE        (1 << 6)
 
+#define FORTH_TRUE                  (-1L)
+#define FORTH_FALSE                 (0L)
+
+#define FORTH_CONTAINER_OF(ptr, type, member) ({                      \
+        const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
+        (type *)((char *)__mptr - offsetof(type,member));})
+
 #define FORTH_FUNC_REG(arg_unitname, arg_flags, arg_func, arg_name, arg_next) \
 static const forth_unit_t arg_unitname = \
 {                                               \
@@ -87,6 +94,7 @@ int forth_init(forth_t* vm, forth_init_t* init_desc);
 int forth_process(forth_t* vm);  
 int forth_add_function(forth_t* vm, const char* name, forth_function_t func, size_t flags);
 int forth_add_variable(forth_t* vm, const char* name, ptrdiff_t default_value);
+int forth_add_variable_ptr(forth_t* vm, const char* name, ptrdiff_t* ptr);
 int forth_add_constant(forth_t* vm, const char* name, ptrdiff_t value);
 int forth_reg_output_cb(forth_t* vm, forth_output_t cb);
 int forth_reg_input_cb(forth_t* vm, forth_input_t cb);

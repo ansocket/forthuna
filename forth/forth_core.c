@@ -242,15 +242,61 @@ void forth_fetch(forth_t* vm)
     ptrdiff_t* addr = (ptrdiff_t*)*(vm->sp++);
     *(--vm->sp) = *addr;
 }
+void forth_true(forth_t* vm)
+{
+    *(--vm->sp) = FORTH_TRUE;
+}
+void forth_false(forth_t* vm)
+{
+    *(--vm->sp) = FORTH_FALSE;
+}
+void forth_aligned(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    ptrdiff_t value = *(vm->sp++);
+    if(value % sizeof(ptrdiff_t) > 0)
+    {
+        value += sizeof(ptrdiff_t) - (ptrdiff_t)value % sizeof(ptrdiff_t);
+    }
+    *(--vm->sp) = value;
+}
+void forth_here(forth_t* vm)
+{
+    *(--vm->sp) = (ptrdiff_t)&vm->here;
+}
+void forth_current(forth_t* vm)
+{
+    *(--vm->sp) = (ptrdiff_t)&vm->current;
+}
+void forth_base(forth_t* vm)
+{
+    *(--vm->sp) = (ptrdiff_t)vm->base;
+}
+void forth_immediate(forth_t* vm)
+{
+    forth_unit_t* var = vm->current;
+    var->flags |= FORTH_FLAGS_IMMEDIATE;
+}
 FORTH_FUNC_REG(forth_exit_unit,0,forth_exit,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
 FORTH_FUNC_REG(forth_align_unit,0,forth_align,"ALIGN",&forth_create_unit);
-FORTH_FUNC_REG(forth_tick_unit,0,forth_tick,"'",&forth_align_unit);
+FORTH_FUNC_REG(forth_aligned_unit,0,forth_aligned,"ALIGNED",&forth_align_unit);
+FORTH_FUNC_REG(forth_tick_unit,0,forth_tick,"'",&forth_aligned_unit);
 FORTH_FUNC_REG(forth_execute_unit,0,forth_execute,"EXECUTE",&forth_tick_unit);
 FORTH_FUNC_REG(forth_plus_unit,0,forth_plus,"+",&forth_execute_unit);
 FORTH_FUNC_REG(forth_colon_unit,0,forth_colon,":",&forth_plus_unit);
 FORTH_FUNC_REG(forth_semicolon_unit,FORTH_FLAGS_IMMEDIATE,forth_semicolon,";",&forth_colon_unit);
 FORTH_FUNC_REG(forth_store_unit,0,forth_store,"!",&forth_semicolon_unit);
 FORTH_FUNC_REG(forth_fetch_unit,0,forth_fetch,"@",&forth_store_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_fetch_unit);
+FORTH_FUNC_REG(forth_true_unit,0,forth_true,"TRUE",&forth_fetch_unit);
+FORTH_FUNC_REG(forth_false_unit,0,forth_false,"FALSE",&forth_true_unit);
+FORTH_FUNC_REG(forth_here_unit,0,forth_here,"HERE",&forth_false_unit);
+FORTH_FUNC_REG(forth_current_unit,0,forth_current,"CURRENT",&forth_here_unit);
+FORTH_FUNC_REG(forth_base_unit,0,forth_base,"BASE",&forth_current_unit);
+FORTH_FUNC_REG(forth_immediate_unit,0,forth_immediate,"IMMEDIATE",&forth_base_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_immediate_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;
