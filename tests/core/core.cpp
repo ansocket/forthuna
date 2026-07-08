@@ -239,11 +239,11 @@ TEST(forth_core, if_then_else) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = ": IF_ELSE_TEST IF 10 99 + ELSE 20 20 + THEN ; TRUE IF_ELSE_TEST FALSE IF_ELSE_TEST";
+    const char* input_string = ": IF_ELSE_TEST IF 10 99 + ELSE 20 EXIT + THEN ; TRUE IF_ELSE_TEST FALSE IF_ELSE_TEST";
     return input_string[i++];
         });
   forth_process(&vm);
-  EXPECT_EQ(*vm.sp++,40);
+  EXPECT_EQ(*vm.sp++,20);
   EXPECT_EQ(*vm.sp++,109);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);

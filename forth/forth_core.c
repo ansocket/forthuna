@@ -47,6 +47,11 @@ void forth_exit(forth_t* vm)
     vm->status |= FORTH_STATUS_EXECUTE_EXIT;
     vm->pc = (ptrdiff_t*)*(vm->rsp++);
 } 
+void forth_exit_compile(forth_t* vm)
+{
+    *(ptrdiff_t*)vm->here = forth_exit;
+    vm->here += sizeof(ptrdiff_t);
+} 
 void forth_align(forth_t* vm)
 {
     if((ptrdiff_t)vm->here % sizeof(ptrdiff_t) > 0)
@@ -440,7 +445,7 @@ void forth_else(forth_t* vm)
     *(--vm->sp) = (ptrdiff_t)vm->here;
     vm->here += sizeof(ptrdiff_t);
 }
-FORTH_FUNC_REG(forth_exit_unit,0,forth_exit,"EXIT",NULL);
+FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
 FORTH_FUNC_REG(forth_does_unit,FORTH_FLAGS_IMMEDIATE,forth_does,"DOES>",&forth_create_unit);
 FORTH_FUNC_REG(forth_align_unit,0,forth_align,"ALIGN",&forth_does_unit);

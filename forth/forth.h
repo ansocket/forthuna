@@ -7,18 +7,19 @@ extern "C"{
 
 #include "stddef.h"
 
-#define FORTH_FLAGS_IMMEDIATE (1 << 0)
+#define FORTH_FLAGS_IMMEDIATE           (1UL << 0)
+#define FORTH_FLAGS_COMPILE_ONLY        (1UL << 1)
 
-#define FORTH_STATUS_NOTFOUND (1 << 0)
-#define FORTH_STATUS_ZERO_DIVISION (1 << 1)
-#define FORTH_STATUS_STACK_UNDERFLOW (1 << 2)
-#define FORTH_STATUS_INPUT_ERROR        (1 << 3)
-#define FORTH_STATUS_EXECUTE_ERROR        (1 << 4)
-#define FORTH_STATUS_EXECUTE_EXIT        (1 << 5)
-#define FORTH_STATUS_WRONG_STATE        (1 << 6)
+#define FORTH_STATUS_NOTFOUND           (1UL << 0)
+#define FORTH_STATUS_ZERO_DIVISION      (1UL << 1)
+#define FORTH_STATUS_STACK_UNDERFLOW    (1UL << 2)
+#define FORTH_STATUS_INPUT_ERROR        (1UL << 3)
+#define FORTH_STATUS_EXECUTE_ERROR      (1UL << 4)
+#define FORTH_STATUS_EXECUTE_EXIT       (1UL << 5)
+#define FORTH_STATUS_WRONG_STATE        (1UL << 6)
 
-#define FORTH_TRUE                  (-1L)
-#define FORTH_FALSE                 (0L)
+#define FORTH_TRUE                      (-1L)
+#define FORTH_FALSE                     (0L)
 
 #define FORTH_CONTAINER_OF(ptr, type, member) ({                      \
         const typeof( ((type *)0)->member ) *__mptr = (ptr);    \
