@@ -389,7 +389,7 @@ void forth_cell_plus(forth_t* vm)
     } 
     *(vm->sp) += sizeof(ptrdiff_t);
 }
-static void forth_if_interpret(forth_t* vm)
+static void forth_if_runtime(forth_t* vm)
 {
     if(forth_check_sp_underflow(vm,1))
     {
@@ -401,10 +401,14 @@ static void forth_if_interpret(forth_t* vm)
     {
         vm->pc++;
     }
+    else
+    {
+        vm->pc = (ptrdiff_t*)*vm->pc;
+    }
 }
 void forth_if(forth_t* vm)
 {
-    *(forth_function_t*)vm->here = forth_if_interpret;
+    *(forth_function_t*)vm->here = forth_if_runtime;
     vm->here += sizeof(ptrdiff_t);
     *(ptrdiff_t*)vm->here = 0;
     *(--vm->sp) = (ptrdiff_t)vm->here;
@@ -415,9 +419,26 @@ void forth_then(forth_t* vm)
     ptrdiff_t** addr = (ptrdiff_t**)*(vm->sp++);
     *addr = (ptrdiff_t*)vm->here;
 }
+static void forth_else_runtime(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    } 
+    vm->pc = (ptrdiff_t)*(vm->pc);
+}
 void forth_else(forth_t* vm)
 {
+    ptrdiff_t* addr = (ptrdiff_t*)*(vm->sp++);
+    *addr = vm->here + sizeof(ptrdiff_t)*2;
 
+    *(forth_function_t*)vm->here = forth_else_runtime;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = 0;
+
+    *(--vm->sp) = (ptrdiff_t)vm->here;
+    vm->here += sizeof(ptrdiff_t);
 }
 FORTH_FUNC_REG(forth_exit_unit,0,forth_exit,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
