@@ -248,3 +248,101 @@ TEST(forth_core, if_then_else) {
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
+TEST(forth_core, do_loop) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ": DO_LOOP_TEST 10 0 DO I LOOP ; DO_LOOP_TEST";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,9);
+  EXPECT_EQ(*vm.sp++,8);
+  EXPECT_EQ(*vm.sp++,7);
+  EXPECT_EQ(*vm.sp++,6);
+  EXPECT_EQ(*vm.sp++,5);
+  EXPECT_EQ(*vm.sp++,4);
+  EXPECT_EQ(*vm.sp++,3);
+  EXPECT_EQ(*vm.sp++,2);
+  EXPECT_EQ(*vm.sp++,1);
+  EXPECT_EQ(*vm.sp++,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, do_loop_nested) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ": GD3 DO 1 0 DO J LOOP LOOP ; 4 1 GD3";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,3);
+  EXPECT_EQ(*vm.sp++,2);
+  EXPECT_EQ(*vm.sp++,1);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, do_plus_loop) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ": GD2 DO I -1 +LOOP ; -1 2 GD2";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, -1);
+  EXPECT_EQ(*vm.sp++, 0);
+  EXPECT_EQ(*vm.sp++, 1);
+  EXPECT_EQ(*vm.sp++, 2);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}

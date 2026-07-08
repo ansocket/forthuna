@@ -25,6 +25,15 @@ char forth_check_rsp_underflow(forth_t* vm, unsigned int num)
         return 0;
     }
 }
+void forth_rpush(forth_t * vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(--vm->rsp) = *(vm->sp++);
+}
 void forth_push(forth_t * vm)
 {
     *(--vm->sp) = *(ptrdiff_t*)(vm->pc++);
@@ -49,7 +58,7 @@ void forth_exit(forth_t* vm)
 } 
 void forth_exit_compile(forth_t* vm)
 {
-    *(ptrdiff_t*)vm->here = forth_exit;
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_exit;
     vm->here += sizeof(ptrdiff_t);
 } 
 void forth_align(forth_t* vm)
@@ -319,11 +328,11 @@ void forth_create(forth_t* vm)
     forth_align(vm);
     unit->cfa = (ptrdiff_t*)vm->here;
     
-    *(ptrdiff_t*)vm->here = forth_push;
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
     vm->here += sizeof(ptrdiff_t);
-    *(ptrdiff_t*)vm->here = vm->here + sizeof(ptrdiff_t)*4;
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)vm->here + sizeof(ptrdiff_t)*4;
     vm->here += sizeof(ptrdiff_t);
-    *(ptrdiff_t*)vm->here = forth_exit;
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_exit;
     vm->here += sizeof(ptrdiff_t)*3;
 }
 static void forth_does_runtime(forth_t* vm)
@@ -334,24 +343,24 @@ static void forth_does_runtime(forth_t* vm)
         return;
     }
     forth_unit_t* unit = vm->current;
-    ptrdiff_t* data_ptr = unit->name;
-    data_ptr = (char*)data_ptr + strlen(unit->name) + 1;
-    *(--vm->sp) = data_ptr;
+    ptrdiff_t* data_ptr = (ptrdiff_t*)unit->name;
+    data_ptr = (ptrdiff_t*)((char*)data_ptr + strlen(unit->name) + 1);
+    *(--vm->sp) = (ptrdiff_t)data_ptr;
     forth_aligned(vm);
-    data_ptr = *(vm->sp++);
-    data_ptr[2] = forth_push;
+    data_ptr = (ptrdiff_t*)*(vm->sp++);
+    data_ptr[2] = (ptrdiff_t)forth_push;
     data_ptr[3] = *(vm->sp++);
-    data_ptr[4] = forth_jmp;
+    data_ptr[4] = (ptrdiff_t)forth_jmp;
 }
 void forth_does(forth_t* vm)
 {
-    *(ptrdiff_t*)vm->here = forth_push;
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
     vm->here += sizeof(ptrdiff_t);
-    *(ptrdiff_t*)vm->here = vm->here + sizeof(ptrdiff_t)*3;
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)vm->here + sizeof(ptrdiff_t)*3;
     vm->here += sizeof(ptrdiff_t);
-    *(ptrdiff_t*)vm->here = forth_does_runtime;
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_does_runtime;
     vm->here += sizeof(ptrdiff_t);
-    *(ptrdiff_t*)vm->here = forth_exit;
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_exit;
     vm->here += sizeof(ptrdiff_t);
     vm->state = FORTH_STATE_COMPILE;
 }
@@ -431,12 +440,12 @@ static void forth_else_runtime(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     } 
-    vm->pc = (ptrdiff_t)*(vm->pc);
+    vm->pc = (ptrdiff_t*)*(vm->pc);
 }
 void forth_else(forth_t* vm)
 {
     ptrdiff_t* addr = (ptrdiff_t*)*(vm->sp++);
-    *addr = vm->here + sizeof(ptrdiff_t)*2;
+    *addr = (ptrdiff_t)vm->here + sizeof(ptrdiff_t)*2;
 
     *(forth_function_t*)vm->here = forth_else_runtime;
     vm->here += sizeof(ptrdiff_t);
@@ -444,6 +453,121 @@ void forth_else(forth_t* vm)
 
     *(--vm->sp) = (ptrdiff_t)vm->here;
     vm->here += sizeof(ptrdiff_t);
+}
+
+static void forth_do_runtime(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    } 
+    if((vm->rsp + 1) != vm->rsp_start)
+    {
+        vm->j = *(vm->rsp + 1);
+    }
+    *(--vm->rsp) = *(vm->sp + 1);
+    *(--vm->rsp) = *(vm->sp);
+    
+    vm->i = *(vm->sp);
+    vm->sp += 2;
+}
+void forth_do(forth_t* vm)
+{
+    *(forth_function_t*)vm->here = forth_do_runtime;
+    vm->here += sizeof(ptrdiff_t);
+    *(forth_function_t*)vm->here = forth_push;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)vm->here - sizeof(ptrdiff_t);
+    vm->here += sizeof(ptrdiff_t);
+    *(forth_function_t*)vm->here = forth_rpush;
+    vm->here += sizeof(ptrdiff_t);
+}
+static void forth_loop_runtime(forth_t* vm)
+{
+    *(vm->rsp + 1) += 1;
+    if(*(vm->rsp + 1) < *(vm->rsp + 2))
+    {
+        vm->i = *(vm->rsp + 1);
+        vm->pc = (ptrdiff_t*)*(vm->rsp++);
+    }
+    else
+    {
+        vm->rsp += 3;
+        vm->i = vm->j;
+        if((vm->rsp + 1) != vm->rsp_start)
+        {
+            vm->j = *(vm->rsp + 1);
+        }
+    }
+}
+void forth_loop(forth_t* vm)
+{
+    *(forth_function_t*)vm->here = forth_loop_runtime;
+    vm->here += sizeof(ptrdiff_t);
+}
+static void forth_plus_loop_runtime(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    } 
+    ptrdiff_t step = *(vm->sp++);
+    
+    if(step < 0)
+    {
+        if(*(vm->rsp + 1) > *(vm->rsp + 2))
+        {
+            *(vm->rsp + 1) += step;
+            vm->i = *(vm->rsp + 1);
+            vm->pc = (ptrdiff_t*)*(vm->rsp++);
+            return;
+        }
+    }
+    else
+    {
+        if(*(vm->rsp + 1) < *(vm->rsp + 2))
+        {
+            *(vm->rsp + 1) += step;
+            vm->i = *(vm->rsp + 1);
+            vm->pc = (ptrdiff_t*)*(vm->rsp++);
+            return;
+        }
+    }
+    vm->rsp += 3;
+    vm->i = vm->j;
+    if((vm->rsp + 1) != vm->rsp_start)
+    {
+        vm->j = *(vm->rsp + 1);
+    }
+}
+void forth_plus_loop(forth_t* vm)
+{
+    *(forth_function_t*)vm->here = forth_plus_loop_runtime;
+    vm->here += sizeof(ptrdiff_t);
+}
+static void forth_leave_runtime(forth_t* vm)
+{
+    // vm->rsp += 3;
+    // vm->i = vm->j;
+    // if((vm->rsp + 1) != vm->rsp_start)
+    // {
+    //     vm->j = *(vm->rsp + 1);
+    // }
+}
+void forth_leave(forth_t* vm)
+{
+    // *(forth_function_t*)vm->here = forth_leave_runtime;
+    // vm->here += sizeof(ptrdiff_t);
+}
+void forth_i(forth_t* vm)
+{
+    *(--vm->sp) = vm->i;
+}
+void forth_j(forth_t* vm)
+{
+    *(--vm->sp) = vm->j;
 }
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
@@ -470,5 +594,11 @@ FORTH_FUNC_REG(forth_immediate_unit,0,forth_immediate,"IMMEDIATE",&forth_base_un
 FORTH_FUNC_REG(forth_if_unit,FORTH_FLAGS_IMMEDIATE,forth_if,"IF",&forth_immediate_unit);
 FORTH_FUNC_REG(forth_then_unit,FORTH_FLAGS_IMMEDIATE,forth_then,"THEN",&forth_if_unit);
 FORTH_FUNC_REG(forth_else_unit,FORTH_FLAGS_IMMEDIATE,forth_else,"ELSE",&forth_then_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_else_unit);
+FORTH_FUNC_REG(forth_do_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE ,forth_do,"DO",&forth_else_unit);
+FORTH_FUNC_REG(forth_loop_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_loop,"LOOP",&forth_do_unit);
+FORTH_FUNC_REG(forth_plus_loop_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_plus_loop,"+LOOP",&forth_loop_unit);
+FORTH_FUNC_REG(forth_leave_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_leave,"LEAVE",&forth_plus_loop_unit);
+FORTH_FUNC_REG(forth_i_unit,0,forth_i,"I",&forth_leave_unit);
+FORTH_FUNC_REG(forth_j_unit,0,forth_j,"J",&forth_i_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_j_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;
