@@ -291,6 +291,24 @@ void forth_equal(forth_t* vm)
     }
     *(++vm->sp) = (*(vm->sp + 1) == *(vm->sp)) ? FORTH_TRUE : FORTH_FALSE;
 }
+void forth_and(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(++vm->sp) = (*(vm->sp + 1) && *(vm->sp)) ? FORTH_TRUE : FORTH_FALSE;
+}
+void forth_or(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(++vm->sp) = (*(vm->sp + 1) || *(vm->sp)) ? FORTH_TRUE : FORTH_FALSE;
+}
 void forth_colon(forth_t* vm)
 {
     char* save_ptr;
@@ -714,7 +732,9 @@ FORTH_FUNC_REG(forth_swap_unit,0,forth_swap,"SWAP",&forth_drop_unit);
 FORTH_FUNC_REG(forth_less_unit,0,forth_less,"<",&forth_swap_unit);
 FORTH_FUNC_REG(forth_greater_unit,0,forth_greater,">",&forth_less_unit);
 FORTH_FUNC_REG(forth_equal_unit,0,forth_equal,"=",&forth_greater_unit);
-FORTH_FUNC_REG(forth_colon_unit,0,forth_colon,":",&forth_equal_unit);
+FORTH_FUNC_REG(forth_and_unit,0,forth_and,"AND",&forth_equal_unit);
+FORTH_FUNC_REG(forth_or_unit,0,forth_or,"OR",&forth_and_unit);
+FORTH_FUNC_REG(forth_colon_unit,0,forth_colon,":",&forth_or_unit);
 FORTH_FUNC_REG(forth_semicolon_unit,FORTH_FLAGS_IMMEDIATE,forth_semicolon,";",&forth_colon_unit);
 FORTH_FUNC_REG(forth_store_unit,0,forth_store,"!",&forth_semicolon_unit);
 FORTH_FUNC_REG(forth_fetch_unit,0,forth_fetch,"@",&forth_store_unit);

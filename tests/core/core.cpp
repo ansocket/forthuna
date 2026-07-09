@@ -433,10 +433,14 @@ TEST(forth_core, logic) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = " 10 15 < 88 105 > 88 33 = 55 27 > 44 44 =";
+    const char* input_string = " 10 15 < 88 105 > 88 33 = 55 27 > 44 44 = TRUE TRUE AND FALSE TRUE OR TRUE FALSE AND FALSE FALSE OR";
     return input_string[i++];
         });
   forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, FORTH_FALSE);
+  EXPECT_EQ(*vm.sp++, FORTH_FALSE);
+  EXPECT_EQ(*vm.sp++, FORTH_TRUE);
+  EXPECT_EQ(*vm.sp++, FORTH_TRUE);
   EXPECT_EQ(*vm.sp++, FORTH_TRUE);
   EXPECT_EQ(*vm.sp++, FORTH_TRUE);
   EXPECT_EQ(*vm.sp++, FORTH_FALSE);
