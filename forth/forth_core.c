@@ -455,14 +455,14 @@ void forth_else(forth_t* vm)
     vm->here += sizeof(ptrdiff_t);
 }
 
-static void forth_do_runtime(forth_t* vm)
+static void forth_do_start_runtime(forth_t* vm)
 {
     if(forth_check_sp_underflow(vm,2))
     {
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     } 
-    if((vm->rsp + 1) != vm->rsp_start)
+    if((vm->rsp + 1) < vm->rsp_start)
     {
         vm->j = *(vm->rsp + 1);
     }
@@ -471,16 +471,23 @@ static void forth_do_runtime(forth_t* vm)
     
     vm->i = *(vm->sp);
     vm->sp += 2;
+    vm->pc += 3;
+}
+static void forth_do_continue_runtime(forth_t* vm)
+{
+    *(--vm->rsp) = (ptrdiff_t)(vm->pc - 1);
 }
 void forth_do(forth_t* vm)
 {
-    *(forth_function_t*)vm->here = forth_do_runtime;
+    *(forth_function_t*)vm->here = forth_do_start_runtime;
     vm->here += sizeof(ptrdiff_t);
     *(forth_function_t*)vm->here = forth_push;
     vm->here += sizeof(ptrdiff_t);
-    *(ptrdiff_t*)vm->here = (ptrdiff_t)vm->here - sizeof(ptrdiff_t);
+    *(--vm->sp) = (ptrdiff_t)vm->here;
     vm->here += sizeof(ptrdiff_t);
-    *(forth_function_t*)vm->here = forth_rpush;
+    *(forth_function_t*)vm->here = forth_jmp;
+    vm->here += sizeof(ptrdiff_t);
+    *(forth_function_t*)vm->here = forth_do_continue_runtime;
     vm->here += sizeof(ptrdiff_t);
 }
 static void forth_loop_runtime(forth_t* vm)
@@ -493,9 +500,10 @@ static void forth_loop_runtime(forth_t* vm)
     }
     else
     {
-        vm->rsp += 3;
+        vm->pc = (ptrdiff_t*)*(vm->rsp++) - 3;
+        vm->rsp += 2;
         vm->i = vm->j;
-        if((vm->rsp + 1) != vm->rsp_start)
+        if((vm->rsp + 1) < vm->rsp_start)
         {
             vm->j = *(vm->rsp + 1);
         }
@@ -503,8 +511,15 @@ static void forth_loop_runtime(forth_t* vm)
 }
 void forth_loop(forth_t* vm)
 {
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    } 
     *(forth_function_t*)vm->here = forth_loop_runtime;
     vm->here += sizeof(ptrdiff_t);
+    ptrdiff_t* addr = (ptrdiff_t*)*(vm->sp++);
+    *addr = (ptrdiff_t)vm->here;
 }
 static void forth_plus_loop_runtime(forth_t* vm)
 {
@@ -535,31 +550,40 @@ static void forth_plus_loop_runtime(forth_t* vm)
             return;
         }
     }
-    vm->rsp += 3;
+    vm->pc = (ptrdiff_t*)*(vm->rsp++) - 3;
+    vm->rsp += 2;
     vm->i = vm->j;
-    if((vm->rsp + 1) != vm->rsp_start)
+    if((vm->rsp + 1) < vm->rsp_start)
     {
         vm->j = *(vm->rsp + 1);
     }
 }
 void forth_plus_loop(forth_t* vm)
 {
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    } 
     *(forth_function_t*)vm->here = forth_plus_loop_runtime;
     vm->here += sizeof(ptrdiff_t);
+    ptrdiff_t* addr = (ptrdiff_t*)*(vm->sp++);
+    *addr = (ptrdiff_t)vm->here;
 }
 static void forth_leave_runtime(forth_t* vm)
 {
-    // vm->rsp += 3;
-    // vm->i = vm->j;
-    // if((vm->rsp + 1) != vm->rsp_start)
-    // {
-    //     vm->j = *(vm->rsp + 1);
-    // }
+    vm->pc = (ptrdiff_t*)*(vm->rsp++) - 3;
+    vm->rsp += 2;
+    vm->i = vm->j;
+    if((vm->rsp + 1) < vm->rsp_start)
+    {
+        vm->j = *(vm->rsp + 1);
+    }
 }
 void forth_leave(forth_t* vm)
 {
-    // *(forth_function_t*)vm->here = forth_leave_runtime;
-    // vm->here += sizeof(ptrdiff_t);
+    *(forth_function_t*)vm->here = forth_leave_runtime;
+    vm->here += sizeof(ptrdiff_t);
 }
 void forth_i(forth_t* vm)
 {

@@ -346,3 +346,40 @@ TEST(forth_core, do_plus_loop) {
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
+TEST(forth_core, do_loop_leave) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ": GD2 10 0 DO -5 I + IF I ELSE LEAVE 99 THEN 10 LOOP ; GD2";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 10);
+  EXPECT_EQ(*vm.sp++, 4);
+  EXPECT_EQ(*vm.sp++, 10);
+  EXPECT_EQ(*vm.sp++, 3);
+  EXPECT_EQ(*vm.sp++, 10);
+  EXPECT_EQ(*vm.sp++, 2);
+  EXPECT_EQ(*vm.sp++, 10);
+  EXPECT_EQ(*vm.sp++, 1);
+  EXPECT_EQ(*vm.sp++, 10);
+  EXPECT_EQ(*vm.sp++, 0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
