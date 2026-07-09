@@ -16,6 +16,7 @@
             "externalConsole": false,
             "MIMode": "gdb",
             "preLaunchTask": "Build tests",
+            "targetArchitecture": "x64",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -27,7 +28,20 @@
                     "text": "-gdb-set disassembly-flavor intel",
                     "ignoreFailures": true
                 }
-            ]
+            ],
+            "customLaunchSetupCommands": 
+            [
+                {
+                    "description": "Disable debuginfod",
+                    "text": "set debuginfod enabled off",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Specify exec file",
+                    "text": "-file-exec-and-symbols ${workspaceFolder}/tests/build/core",
+                    "ignoreFailures": true
+                }
+            ],
         }
     ]
 }
