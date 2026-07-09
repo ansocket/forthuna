@@ -47,6 +47,17 @@ void forth_drop(forth_t * vm)
     }
     vm->sp++;
 }
+void forth_swap(forth_t * vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(vm->sp) ^= *(vm->sp + 1);
+    *(vm->sp + 1) ^= *(vm->sp);
+    *(vm->sp) ^= *(vm->sp + 1);
+}
 void forth_jmp(forth_t * vm)
 {
     if(forth_check_sp_underflow(vm,1))
@@ -699,7 +710,8 @@ FORTH_FUNC_REG(forth_mul_unit,0,forth_mul,"*",&forth_minus_unit);
 FORTH_FUNC_REG(forth_div_unit,0,forth_div,"/",&forth_mul_unit);
 FORTH_FUNC_REG(forth_dup_unit,0,forth_dup,"DUP",&forth_div_unit);
 FORTH_FUNC_REG(forth_drop_unit,0,forth_drop,"DROP",&forth_dup_unit);
-FORTH_FUNC_REG(forth_less_unit,0,forth_less,"<",&forth_drop_unit);
+FORTH_FUNC_REG(forth_swap_unit,0,forth_swap,"SWAP",&forth_drop_unit);
+FORTH_FUNC_REG(forth_less_unit,0,forth_less,"<",&forth_swap_unit);
 FORTH_FUNC_REG(forth_greater_unit,0,forth_greater,">",&forth_less_unit);
 FORTH_FUNC_REG(forth_equal_unit,0,forth_equal,"=",&forth_greater_unit);
 FORTH_FUNC_REG(forth_colon_unit,0,forth_colon,":",&forth_equal_unit);
