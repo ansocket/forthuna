@@ -38,6 +38,15 @@ void forth_push(forth_t * vm)
 {
     *(--vm->sp) = *(ptrdiff_t*)(vm->pc++);
 }
+void forth_drop(forth_t * vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    vm->sp++;
+}
 void forth_jmp(forth_t * vm)
 {
     if(forth_check_sp_underflow(vm,1))
@@ -200,7 +209,76 @@ void forth_plus(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-    *(++vm->sp) = *(vm->sp) + *(vm->sp + 1);
+    *(++vm->sp) = *(vm->sp + 1) + *(vm->sp);
+}
+void forth_minus(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(++vm->sp) = *(vm->sp + 1) - *(vm->sp);
+}
+void forth_mul(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(++vm->sp) = *(vm->sp + 1) * *(vm->sp);
+}
+void forth_div(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    if(*(vm->sp) == 0)
+    {
+        vm->status |= FORTH_STATUS_ZERO_DIVISION;
+        return;
+    }
+    *(++vm->sp) = *(vm->sp + 1) / *(vm->sp);
+}
+void forth_dup(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(vm->sp - 1) = *(vm->sp);
+    vm->sp--;
+}
+void forth_less(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(++vm->sp) = (*(vm->sp + 1) < *(vm->sp)) ? FORTH_TRUE : FORTH_FALSE;
+}
+void forth_greater(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(++vm->sp) = (*(vm->sp + 1) > *(vm->sp)) ? FORTH_TRUE : FORTH_FALSE;
+}
+void forth_equal(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(++vm->sp) = (*(vm->sp + 1) == *(vm->sp)) ? FORTH_TRUE : FORTH_FALSE;
 }
 void forth_colon(forth_t* vm)
 {
@@ -593,6 +671,17 @@ void forth_j(forth_t* vm)
 {
     *(--vm->sp) = vm->j;
 }
+void forth_recurse(forth_t* vm)
+{
+    forth_unit_t* unit = vm->current;
+    *(forth_function_t*)vm->here = forth_push;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)unit->cfa;
+    vm->here += sizeof(ptrdiff_t);
+    *(forth_function_t*)vm->here = forth_execute;
+    vm->here += sizeof(ptrdiff_t);
+}
+
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
 FORTH_FUNC_REG(forth_does_unit,FORTH_FLAGS_IMMEDIATE,forth_does,"DOES>",&forth_create_unit);
@@ -605,7 +694,15 @@ FORTH_FUNC_REG(forth_comma_unit,0,forth_comma,",",&forth_allot_unit);
 FORTH_FUNC_REG(forth_tick_unit,0,forth_tick,"'",&forth_comma_unit);
 FORTH_FUNC_REG(forth_execute_unit,0,forth_execute,"EXECUTE",&forth_tick_unit);
 FORTH_FUNC_REG(forth_plus_unit,0,forth_plus,"+",&forth_execute_unit);
-FORTH_FUNC_REG(forth_colon_unit,0,forth_colon,":",&forth_plus_unit);
+FORTH_FUNC_REG(forth_minus_unit,0,forth_minus,"-",&forth_plus_unit);
+FORTH_FUNC_REG(forth_mul_unit,0,forth_mul,"*",&forth_minus_unit);
+FORTH_FUNC_REG(forth_div_unit,0,forth_div,"/",&forth_mul_unit);
+FORTH_FUNC_REG(forth_dup_unit,0,forth_dup,"DUP",&forth_div_unit);
+FORTH_FUNC_REG(forth_drop_unit,0,forth_drop,"DROP",&forth_dup_unit);
+FORTH_FUNC_REG(forth_less_unit,0,forth_less,"<",&forth_drop_unit);
+FORTH_FUNC_REG(forth_greater_unit,0,forth_greater,">",&forth_less_unit);
+FORTH_FUNC_REG(forth_equal_unit,0,forth_equal,"=",&forth_greater_unit);
+FORTH_FUNC_REG(forth_colon_unit,0,forth_colon,":",&forth_equal_unit);
 FORTH_FUNC_REG(forth_semicolon_unit,FORTH_FLAGS_IMMEDIATE,forth_semicolon,";",&forth_colon_unit);
 FORTH_FUNC_REG(forth_store_unit,0,forth_store,"!",&forth_semicolon_unit);
 FORTH_FUNC_REG(forth_fetch_unit,0,forth_fetch,"@",&forth_store_unit);
@@ -624,5 +721,6 @@ FORTH_FUNC_REG(forth_plus_loop_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMED
 FORTH_FUNC_REG(forth_leave_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_leave,"LEAVE",&forth_plus_loop_unit);
 FORTH_FUNC_REG(forth_i_unit,0,forth_i,"I",&forth_leave_unit);
 FORTH_FUNC_REG(forth_j_unit,0,forth_j,"J",&forth_i_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_j_unit);
+FORTH_FUNC_REG(forth_recurse_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_recurse,"RECURSE",&forth_j_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_recurse_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;

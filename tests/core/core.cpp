@@ -383,3 +383,93 @@ TEST(forth_core, do_loop_leave) {
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
+TEST(forth_core, dup) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " 10 15 DUP ";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 15);
+  EXPECT_EQ(*vm.sp++, 15);
+  EXPECT_EQ(*vm.sp++, 10);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, logic) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " 10 15 < 88 105 > 88 33 = 55 27 > 44 44 =";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, FORTH_TRUE);
+  EXPECT_EQ(*vm.sp++, FORTH_TRUE);
+  EXPECT_EQ(*vm.sp++, FORTH_FALSE);
+  EXPECT_EQ(*vm.sp++, FORTH_FALSE);
+  EXPECT_EQ(*vm.sp++, FORTH_TRUE);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, recurse) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 128
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " : FACTORIAL DUP 2 < IF DROP 1 EXIT THEN  DUP 1 - RECURSE * ; 4 FACTORIAL";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 24);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
