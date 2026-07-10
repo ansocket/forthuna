@@ -538,7 +538,7 @@ void forth_number_sign(forth_t* vm)
         res = number1 % vm->base;
         *(--vm->sp) = number1 / vm->base;
     }
-    *(--vm->hld) = digits[res];
+    *(--vm->hld) = digits[abs(res)];
 }
 void forth_number_sign_s(forth_t* vm)
 {

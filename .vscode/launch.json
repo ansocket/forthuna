@@ -8,7 +8,7 @@
             "name": "Core tests",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/tests/build/core",
+            "program": "${workspaceFolder}/build/examples/repl/repl",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
@@ -38,7 +38,7 @@
                 },
                 {
                     "description": "Specify exec file",
-                    "text": "-file-exec-and-symbols ${workspaceFolder}/tests/build/core",
+                    "text": "-file-exec-and-symbols ${workspaceFolder}/build/examples/repl/repl",
                     "ignoreFailures": true
                 }
             ],
