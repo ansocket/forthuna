@@ -1,6 +1,6 @@
 #include "forth.h"
 #include "forth_core.h"
-
+#include "string.h"
 extern const forth_unit_t* FORTH_ADDR;
 
 int forth_init(forth_t* vm, forth_init_t* init_desc)
@@ -20,6 +20,7 @@ int forth_init(forth_t* vm, forth_init_t* init_desc)
     vm->status = 0;
     vm->base = 10;
     vm->source = vm->tib;
+    vm->local_echo = init_desc->local_echo;
     vm->state = FORTH_STATE_INTERPRET;
     return 0;
 }
@@ -34,11 +35,50 @@ int forth_process(forth_t* vm)
     do
     {
         ch = vm->input_cb();
+        if(vm->local_echo && vm->output_cb)
+        {
+            vm->output_cb(ch);
+        }
         vm->tib[ch_counter++] = ch;
     }while(ch != '\0');
     *(--vm->sp) = (ptrdiff_t)vm->tib;
     *(--vm->sp) = ch_counter;
     forth_evaluate(vm);
+    if(vm->status != 0)
+    {
+        if(vm->status & FORTH_STATUS_NOTFOUND)
+        {
+            forth_send_report(vm,"NOTFOUND");
+        }
+        else if(vm->status & FORTH_STATUS_ZERO_DIVISION)
+        {
+            forth_send_report(vm,"ZERO_DIVISION");
+        }
+        else if(vm->status & FORTH_STATUS_STACK_UNDERFLOW)
+        {
+            forth_send_report(vm,"STACK_UNDERFLOW");
+        }
+        else if(vm->status & FORTH_STATUS_INPUT_ERROR)
+        {
+            forth_send_report(vm,"INPUT_ERROR");
+        }
+        else if(vm->status & FORTH_STATUS_EXECUTE_ERROR)
+        {
+            forth_send_report(vm,"EXECUTE_ERROR");
+        }
+        else if(vm->status & FORTH_STATUS_EXECUTE_EXIT)
+        {
+            forth_send_report(vm,"EXECUTE_EXIT");
+        }
+        else if(vm->status & FORTH_STATUS_WRONG_STATE)
+        {
+            forth_send_report(vm,"WRONG_STATE");
+        }
+        else if(vm->status & FORTH_STATUS_COMPILE_ONLY)
+        {
+            forth_send_report(vm,"COMPILE_ONLY");
+        }
+    }
 }
 
 int forth_add_function(forth_t* vm, const char* name, forth_function_t func, size_t flags)
@@ -109,4 +149,15 @@ int forth_reg_input_cb(forth_t* vm, forth_input_t cb)
 {
     vm->input_cb = cb;
     return 0;
+}
+int forth_send_report(forth_t* vm, const char* string)
+{
+    if(vm->output_cb != NULL)
+    {
+        for(unsigned int i = 0; i < strlen(string); i++)
+        {
+            vm->output_cb(string[i]);
+        }
+        vm->output_cb('\n');
+    }
 }

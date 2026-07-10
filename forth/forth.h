@@ -17,6 +17,7 @@ extern "C"{
 #define FORTH_STATUS_EXECUTE_ERROR      (1UL << 4)
 #define FORTH_STATUS_EXECUTE_EXIT       (1UL << 5)
 #define FORTH_STATUS_WRONG_STATE        (1UL << 6)
+#define FORTH_STATUS_COMPILE_ONLY        (1UL << 7)
 
 #define FORTH_TRUE                      (-1L)
 #define FORTH_FALSE                     (0L)
@@ -61,6 +62,7 @@ typedef struct forth_init
     unsigned int sp_cells;
     unsigned int rsp_cells;
     unsigned int tib_bytes;
+    char local_echo;
 }forth_init_t;
 
 typedef enum
@@ -75,6 +77,7 @@ typedef struct forth
     ptrdiff_t* sp_start;
     ptrdiff_t* rsp_start;
     forth_output_t output_cb;
+    char local_echo;
     forth_input_t input_cb;
 
     ptrdiff_t* sp;
@@ -102,6 +105,7 @@ int forth_add_variable_ptr(forth_t* vm, const char* name, ptrdiff_t* ptr);
 int forth_add_constant(forth_t* vm, const char* name, ptrdiff_t value);
 int forth_reg_output_cb(forth_t* vm, forth_output_t cb);
 int forth_reg_input_cb(forth_t* vm, forth_input_t cb);
+int forth_send_report(forth_t* vm, const char* string);
 #ifdef __cplusplus
 }
 #endif

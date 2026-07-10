@@ -172,6 +172,11 @@ void forth_evaluate(forth_t* vm)
         {
             if((vm->state == FORTH_STATE_INTERPRET) || (p->flags & FORTH_FLAGS_IMMEDIATE))
             {
+                if((vm->state == FORTH_STATE_INTERPRET) && (p->flags & FORTH_FLAGS_COMPILE_ONLY))
+                {
+                    vm->status |= FORTH_STATUS_COMPILE_ONLY;
+                    break;
+                }
                 forth_execute(vm);
             }
             else
@@ -339,11 +344,6 @@ void forth_colon(forth_t* vm)
 }
 void forth_semicolon(forth_t* vm)
 {
-    if(vm->state != FORTH_STATE_COMPILE)
-    {
-        vm->status |= FORTH_STATUS_WRONG_STATE;
-        return;
-    }
     *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_exit;
     vm->here += sizeof(ptrdiff_t);
     vm->state = FORTH_STATE_INTERPRET;
@@ -933,7 +933,7 @@ FORTH_FUNC_REG(forth_equal_unit,0,forth_equal,"=",&forth_greater_unit);
 FORTH_FUNC_REG(forth_and_unit,0,forth_and,"AND",&forth_equal_unit);
 FORTH_FUNC_REG(forth_or_unit,0,forth_or,"OR",&forth_and_unit);
 FORTH_FUNC_REG(forth_colon_unit,0,forth_colon,":",&forth_or_unit);
-FORTH_FUNC_REG(forth_semicolon_unit,FORTH_FLAGS_IMMEDIATE,forth_semicolon,";",&forth_colon_unit);
+FORTH_FUNC_REG(forth_semicolon_unit,FORTH_FLAGS_IMMEDIATE | FORTH_FLAGS_COMPILE_ONLY,forth_semicolon,";",&forth_colon_unit);
 FORTH_FUNC_REG(forth_store_unit,0,forth_store,"!",&forth_semicolon_unit);
 FORTH_FUNC_REG(forth_fetch_unit,0,forth_fetch,"@",&forth_store_unit);
 FORTH_FUNC_REG(forth_c_fetch_unit,0,forth_с_fetch,"C@",&forth_fetch_unit);
@@ -955,9 +955,9 @@ FORTH_FUNC_REG(forth_dot_unit,0,forth_dot,".",&forth_sign_unit);
 FORTH_FUNC_REG(forth_current_unit,0,forth_current,"CURRENT",&forth_dot_unit);
 FORTH_FUNC_REG(forth_base_unit,0,forth_base,"BASE",&forth_current_unit);
 FORTH_FUNC_REG(forth_immediate_unit,0,forth_immediate,"IMMEDIATE",&forth_base_unit);
-FORTH_FUNC_REG(forth_if_unit,FORTH_FLAGS_IMMEDIATE,forth_if,"IF",&forth_immediate_unit);
-FORTH_FUNC_REG(forth_then_unit,FORTH_FLAGS_IMMEDIATE,forth_then,"THEN",&forth_if_unit);
-FORTH_FUNC_REG(forth_else_unit,FORTH_FLAGS_IMMEDIATE,forth_else,"ELSE",&forth_then_unit);
+FORTH_FUNC_REG(forth_if_unit,FORTH_FLAGS_IMMEDIATE | FORTH_FLAGS_COMPILE_ONLY,forth_if,"IF",&forth_immediate_unit);
+FORTH_FUNC_REG(forth_then_unit,FORTH_FLAGS_IMMEDIATE | FORTH_FLAGS_COMPILE_ONLY,forth_then,"THEN",&forth_if_unit);
+FORTH_FUNC_REG(forth_else_unit,FORTH_FLAGS_IMMEDIATE | FORTH_FLAGS_COMPILE_ONLY,forth_else,"ELSE",&forth_then_unit);
 FORTH_FUNC_REG(forth_do_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE ,forth_do,"DO",&forth_else_unit);
 FORTH_FUNC_REG(forth_loop_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_loop,"LOOP",&forth_do_unit);
 FORTH_FUNC_REG(forth_plus_loop_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_plus_loop,"+LOOP",&forth_loop_unit);
