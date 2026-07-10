@@ -15,7 +15,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "preLaunchTask": "Build tests",
+            "preLaunchTask": "Build REPL",
             "targetArchitecture": "x64",
             "setupCommands": [
                 {

@@ -14,6 +14,18 @@
             "type": "shell",
             "command": "./tests/build/core",
             "problemMatcher": []
+        },
+        {
+            "label": "Build REPL",
+            "type": "shell",
+            "command": "cmake --build build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run REPL",
+            "type": "shell",
+            "command": "./build/examples/repl/repl",
+            "problemMatcher": []
         }
     ]
 }

@@ -547,16 +547,17 @@ void forth_number_sign_s(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-
+    ptrdiff_t number1 = *(vm->sp);
+    ptrdiff_t number2 = *(vm->sp + 1);
     while(1)
     {
-        ptrdiff_t number1 = *(vm->sp);
-        ptrdiff_t number2 = *(vm->sp + 1);
+        forth_number_sign(vm);
+        number1 = *(vm->sp);
+        number2 = *(vm->sp + 1);
         if((number1 == 0) && (number2 == 0))
         {
             break;
         }
-        forth_number_sign(vm);
     }
 }
 void forth_number_sign_greater(forth_t* vm)
