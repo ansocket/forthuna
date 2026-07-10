@@ -107,7 +107,7 @@ void forth_tick(forth_t* vm)
         if(strcmp(p->name,token) == 0)
         {
             *(--vm->sp) = (ptrdiff_t)p->cfa;
-            break;
+            return;
         }
         p = (forth_unit_t*)p->next;
     }
@@ -562,6 +562,37 @@ void forth_number_sign_greater(forth_t* vm)
     *(--vm->sp) = (ptrdiff_t)vm->hld;
     *(--vm->sp) = (ptrdiff_t)(pad_addr - vm->hld);
 }
+void forth_sign(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    if(*(vm->sp++) < 0)
+    {
+        *(--vm->hld) = '-';
+    }
+}
+void forth_dot(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    forth_less_number_sign(vm);
+    char sign = *(vm->sp) < 0;
+    *(--vm->sp) = 0;
+    forth_number_sign_s(vm);
+    if(sign)
+    {
+        *(--vm->sp) = -1;
+        forth_sign(vm);
+    }
+    forth_number_sign_greater(vm);
+    forth_type(vm);
+}
 void forth_current(forth_t* vm)
 {
     *(--vm->sp) = (ptrdiff_t)&vm->current;
@@ -919,7 +950,9 @@ FORTH_FUNC_REG(forth_less_number_sign_unit,0,forth_less_number_sign,"<#",&forth_
 FORTH_FUNC_REG(forth_number_sign_unit,0,forth_number_sign,"#",&forth_less_number_sign_unit);
 FORTH_FUNC_REG(forth_number_sign_s_unit,0,forth_number_sign_s,"#S",&forth_number_sign_unit);
 FORTH_FUNC_REG(forth_number_sign_greater_unit,0,forth_number_sign_greater,"#>",&forth_number_sign_s_unit);
-FORTH_FUNC_REG(forth_current_unit,0,forth_current,"CURRENT",&forth_number_sign_greater_unit);
+FORTH_FUNC_REG(forth_sign_unit,0,forth_sign,"SIGN",&forth_number_sign_greater_unit);
+FORTH_FUNC_REG(forth_dot_unit,0,forth_dot,".",&forth_sign_unit);
+FORTH_FUNC_REG(forth_current_unit,0,forth_current,"CURRENT",&forth_dot_unit);
 FORTH_FUNC_REG(forth_base_unit,0,forth_base,"BASE",&forth_current_unit);
 FORTH_FUNC_REG(forth_immediate_unit,0,forth_immediate,"IMMEDIATE",&forth_base_unit);
 FORTH_FUNC_REG(forth_if_unit,FORTH_FLAGS_IMMEDIATE,forth_if,"IF",&forth_immediate_unit);

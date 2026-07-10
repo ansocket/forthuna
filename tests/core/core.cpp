@@ -14,6 +14,7 @@ TEST(forth_core, Init) {
     .tib_bytes = 128
   };
   forth_init(&vm,&init_desc);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp, vm.sp_start);
   free(memory);
 }
@@ -42,6 +43,7 @@ TEST(forth_core, simple) {
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,3);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -71,6 +73,7 @@ TEST(forth_core, execute) {
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,3);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -99,6 +102,7 @@ TEST(forth_core, colon) {
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,10);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -132,6 +136,7 @@ TEST(forth_core, c_variable) {
   EXPECT_EQ(*vm.sp++,33);
   EXPECT_EQ(*vm.sp++,20);
   EXPECT_EQ(*vm.sp++,10);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -188,6 +193,7 @@ TEST(forth_core, create_does_var) {
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,10);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -245,6 +251,7 @@ TEST(forth_core, if_then_else) {
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,20);
   EXPECT_EQ(*vm.sp++,109);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -282,6 +289,7 @@ TEST(forth_core, do_loop) {
   EXPECT_EQ(*vm.sp++,2);
   EXPECT_EQ(*vm.sp++,1);
   EXPECT_EQ(*vm.sp++,0);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -312,6 +320,7 @@ TEST(forth_core, do_loop_nested) {
   EXPECT_EQ(*vm.sp++,3);
   EXPECT_EQ(*vm.sp++,2);
   EXPECT_EQ(*vm.sp++,1);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -343,6 +352,7 @@ TEST(forth_core, do_plus_loop) {
   EXPECT_EQ(*vm.sp++, 0);
   EXPECT_EQ(*vm.sp++, 1);
   EXPECT_EQ(*vm.sp++, 2);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -380,6 +390,7 @@ TEST(forth_core, do_loop_leave) {
   EXPECT_EQ(*vm.sp++, 1);
   EXPECT_EQ(*vm.sp++, 10);
   EXPECT_EQ(*vm.sp++, 0);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -410,6 +421,7 @@ TEST(forth_core, dup) {
   EXPECT_EQ(*vm.sp++, 15);
   EXPECT_EQ(*vm.sp++, 15);
   EXPECT_EQ(*vm.sp++, 10);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -446,6 +458,7 @@ TEST(forth_core, logic) {
   EXPECT_EQ(*vm.sp++, FORTH_FALSE);
   EXPECT_EQ(*vm.sp++, FORTH_FALSE);
   EXPECT_EQ(*vm.sp++, FORTH_TRUE);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -474,6 +487,7 @@ TEST(forth_core, recurse) {
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 24);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -503,6 +517,7 @@ TEST(forth_core, swap) {
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 10);
   EXPECT_EQ(*vm.sp++, 20);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -534,6 +549,7 @@ TEST(forth_core, sq) {
   EXPECT_EQ(*vm.sp++, 2);
   EXPECT_EQ(*vm.sp++, 97);
   EXPECT_EQ(*vm.sp++, 8);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -564,6 +580,7 @@ TEST(forth_core, sq1) {
   EXPECT_EQ(*vm.sp++, 89);
   EXPECT_EQ(*vm.sp++, 88);
   EXPECT_EQ(*vm.sp++, 2);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -594,6 +611,7 @@ TEST(forth_core, emit) {
     std::putchar(ch);
   });
   forth_process(&vm);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -624,6 +642,7 @@ TEST(forth_core, type) {
     std::putchar(ch);
   });
   forth_process(&vm);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
@@ -636,7 +655,7 @@ TEST(forth_core, formatting) {
     .full_memory_cells = 4096/sizeof(ptrdiff_t),
     .sp_cells = 32, 
     .rsp_cells = 32,
-    .tib_bytes = 128
+    .tib_bytes = 1024
   };
   forth_init(&vm,&init_desc);
   forth_reg_input_cb(&vm,[]() -> char {
@@ -647,13 +666,50 @@ TEST(forth_core, formatting) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = "<# 10 0 # # #> TYPE 16 BASE ! <# FF 0 # # #> TYPE <# 442 0 #S #> TYPE ";
+    const char* input_string = "<# 10 0 # # #> TYPE 16 BASE ! \
+                                      <# FF 0 # # #> TYPE \
+                                      <# 442 0 #S #> TYPE \
+                                      A BASE ! \
+                                      <# 15 0 #S -1 SIGN #> TYPE \
+                                      10 EMIT";
     return input_string[i++];
         });
   forth_reg_output_cb(&vm,[](char ch) -> void {
     std::putchar(ch);
   });
   forth_process(&vm);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, dot) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 1024
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "10 20 + . 10 EMIT";
+    return input_string[i++];
+        });
+  forth_reg_output_cb(&vm,[](char ch) -> void {
+    std::putchar(ch);
+  });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
