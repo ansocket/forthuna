@@ -79,6 +79,18 @@ int forth_process(forth_t* vm)
             forth_send_report(vm,"COMPILE_ONLY");
         }
     }
+    else
+    {
+        if(vm->state == FORTH_STATE_INTERPRET)
+        {
+            forth_send_report(vm,"OK");
+        }
+        else
+        {
+            forth_send_report(vm,"COMPILED");
+        }
+        
+    }
 }
 
 int forth_add_function(forth_t* vm, const char* name, forth_function_t func, size_t flags)

@@ -448,6 +448,16 @@ void forth_emit(forth_t* vm)
         vm->output_cb((char)*(vm->sp++));
     }
 }
+void forth_cr(forth_t* vm)
+{
+    *(--vm->sp) = '\n';
+    forth_emit(vm);
+}
+void forth_space(forth_t* vm)
+{
+    *(--vm->sp) = ' ';
+    forth_emit(vm);
+}
 void forth_type(forth_t* vm)
 {
     if(forth_check_sp_underflow(vm,2))
@@ -592,6 +602,7 @@ void forth_dot(forth_t* vm)
     }
     forth_number_sign_greater(vm);
     forth_type(vm);
+    forth_space(vm);
 }
 void forth_current(forth_t* vm)
 {
@@ -908,6 +919,25 @@ void forth_recurse(forth_t* vm)
     *(forth_function_t*)vm->here = forth_execute;
     vm->here += sizeof(ptrdiff_t);
 }
+void forth_constant(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    } 
+    forth_create(vm);
+    forth_unit_t* unit = vm->current;
+    ptrdiff_t* data_ptr = unit->cfa;
+    data_ptr[1] = *(vm->sp++);
+    data_ptr[2] = (ptrdiff_t)forth_exit;
+}
+void forth_variable(forth_t* vm)
+{
+    forth_create(vm);
+    *(--vm->sp) = 0;
+    forth_comma(vm);
+}
 
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
@@ -940,7 +970,9 @@ FORTH_FUNC_REG(forth_c_fetch_unit,0,forth_с_fetch,"C@",&forth_fetch_unit);
 FORTH_FUNC_REG(forth_char_plus_unit,0,forth_сhar_plus,"CHAR+",&forth_c_fetch_unit);
 FORTH_FUNC_REG(forth_squote_unit,FORTH_FLAGS_IMMEDIATE,forth_squote,"S\"",&forth_char_plus_unit);
 FORTH_FUNC_REG(forth_emit_unit,0,forth_emit,"EMIT",&forth_squote_unit);
-FORTH_FUNC_REG(forth_type_unit,0,forth_type,"TYPE",&forth_emit_unit);
+FORTH_FUNC_REG(forth_cr_unit,0,forth_cr,"CR",&forth_emit_unit);
+FORTH_FUNC_REG(forth_space_unit,0,forth_space,"SPACE",&forth_cr_unit);
+FORTH_FUNC_REG(forth_type_unit,0,forth_type,"TYPE",&forth_space_unit);
 FORTH_FUNC_REG(forth_true_unit,0,forth_true,"TRUE",&forth_type_unit);
 FORTH_FUNC_REG(forth_false_unit,0,forth_false,"FALSE",&forth_true_unit);
 FORTH_FUNC_REG(forth_here_unit,0,forth_here,"HERE",&forth_false_unit);
@@ -965,5 +997,7 @@ FORTH_FUNC_REG(forth_leave_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE
 FORTH_FUNC_REG(forth_i_unit,0,forth_i,"I",&forth_leave_unit);
 FORTH_FUNC_REG(forth_j_unit,0,forth_j,"J",&forth_i_unit);
 FORTH_FUNC_REG(forth_recurse_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_recurse,"RECURSE",&forth_j_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_recurse_unit);
+FORTH_FUNC_REG(forth_constant_unit,0,forth_constant,"CONSTANT",&forth_recurse_unit);
+FORTH_FUNC_REG(forth_variable_unit,0,forth_variable,"VARIABLE",&forth_constant_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_variable_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;
