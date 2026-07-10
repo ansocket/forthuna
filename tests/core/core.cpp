@@ -727,25 +727,20 @@ TEST(forth_core, multiple_runs) {
   };
   forth_init(&vm,&init_desc);
   forth_reg_input_cb(&vm,[]() -> char {
-    char res =  getchar();
-    if(res == '\n') 
-    {
-      res = '\0';
-    }
-    return res;
-    // static int i = 0; 
-    // const char* input_string = "10 20 + DUP . \0 : BEBE 40 DUP . + \0 ; BEBE DUP .";
-    // return input_string[i++];
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "10 20 + DUP . \0 : BEBE 40 DUP . + \0 ; BEBE DUP .";
+    return input_string[i++];
         });
   forth_reg_output_cb(&vm,[](char ch) -> void {
     std::putchar(ch);
   });
-  while(1)
-  {
-    forth_process(&vm);
-    vm.status = 0;
-  }
-  
+  forth_process(&vm);
   forth_process(&vm);
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 70);
@@ -753,3 +748,112 @@ TEST(forth_core, multiple_runs) {
   EXPECT_EQ(vm.sp,vm.sp_start);
   free(memory);
 }
+TEST(forth_core, begin_while) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 1024
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ": GI4 BEGIN DUP 1 + DUP 5 > UNTIL ; 3 GI4";
+    return input_string[i++];
+        });
+  forth_reg_output_cb(&vm,[](char ch) -> void {
+    std::putchar(ch);
+  });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 6);
+  EXPECT_EQ(*vm.sp++, 5);
+  EXPECT_EQ(*vm.sp++, 4);
+  EXPECT_EQ(*vm.sp++, 3);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, begin_while_repeat) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 1024
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ": GI3 BEGIN DUP 5 < WHILE DUP 1 + REPEAT ; 0 GI3 4 GI3 5 GI3 6 GI3";
+    return input_string[i++];
+        });
+  forth_reg_output_cb(&vm,[](char ch) -> void {
+    std::putchar(ch);
+  });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 6);
+  EXPECT_EQ(*vm.sp++, 5);
+  EXPECT_EQ(*vm.sp++, 5);
+  EXPECT_EQ(*vm.sp++, 4);
+  EXPECT_EQ(*vm.sp++, 5);
+  EXPECT_EQ(*vm.sp++, 4);
+  EXPECT_EQ(*vm.sp++, 3);
+  EXPECT_EQ(*vm.sp++, 2);
+  EXPECT_EQ(*vm.sp++, 1);
+  EXPECT_EQ(*vm.sp++, 0);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+TEST(forth_core, literal) {
+  forth vm;
+  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
+  forth_init_t init_desc = 
+  {
+    .full_memory = memory,
+    .full_memory_cells = 4096/sizeof(ptrdiff_t),
+    .sp_cells = 32, 
+    .rsp_cells = 32,
+    .tib_bytes = 1024
+  };
+  forth_init(&vm,&init_desc);
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ": lit_test 1 [ 2 3 + ] LITERAL + ; lit_test";
+    return input_string[i++];
+        });
+  forth_reg_output_cb(&vm,[](char ch) -> void {
+    std::putchar(ch);
+  });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 6);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  free(memory);
+}
+

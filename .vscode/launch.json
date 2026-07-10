@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Core tests",
+            "name": "REPL",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/examples/repl/repl",
@@ -39,6 +39,45 @@
                 {
                     "description": "Specify exec file",
                     "text": "-file-exec-and-symbols ${workspaceFolder}/build/examples/repl/repl",
+                    "ignoreFailures": true
+                }
+            ],
+        },
+        {
+            "name": "Core tests",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/tests/build/core",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "preLaunchTask": "Build tests",
+            "targetArchitecture": "x64",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Set Disassembly Flavor to Intel",
+                    "text": "-gdb-set disassembly-flavor intel",
+                    "ignoreFailures": true
+                }
+            ],
+            "customLaunchSetupCommands": 
+            [
+                {
+                    "description": "Disable debuginfod",
+                    "text": "set debuginfod enabled off",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Specify exec file",
+                    "text": "-file-exec-and-symbols ${workspaceFolder}/tests/build/core",
                     "ignoreFailures": true
                 }
             ],
