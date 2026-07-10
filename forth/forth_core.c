@@ -1062,6 +1062,37 @@ void forth_literal(forth_t* vm)
     *(ptrdiff_t*)vm->here = *(vm->sp++);
     vm->here += sizeof(ptrdiff_t);
 }
+void forth_postpone(forth_t* vm)
+{
+    char* save_ptr;
+    char* token = strtok_r(&vm->source[vm->in]," ",&save_ptr);
+    if(token != NULL)
+    {
+        vm->in += (save_ptr - &vm->source[vm->in]);
+    }
+    else
+    {
+        vm->status |= FORTH_STATUS_NOTFOUND;
+        return;
+    }
+    forth_unit_t* p = vm->current;
+    while(p != NULL)
+    {
+        if(strcmp(p->name,token) == 0)
+        {
+            break;
+        }
+        p = (forth_unit_t*)p->next;
+    }
+    if(p == NULL)
+    {
+        vm->status |= FORTH_STATUS_NOTFOUND;
+        return;
+    }
+    forth_align(vm);
+    *(ptrdiff_t**)vm->here = (ptrdiff_t*)*p->cfa;
+    vm->here += sizeof(ptrdiff_t);
+}
 
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
@@ -1133,5 +1164,6 @@ FORTH_FUNC_REG(forth_paren_brace_unit,FORTH_FLAGS_IMMEDIATE,forth_paren_brace,"(
 FORTH_FUNC_REG(forth_left_bracket_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_left_bracket,"[",&forth_paren_brace_unit);
 FORTH_FUNC_REG(forth_right_bracket_unit,0,forth_right_bracket,"]",&forth_left_bracket_unit);
 FORTH_FUNC_REG(forth_literal_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_literal,"LITERAL",&forth_right_bracket_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_literal_unit);
+FORTH_FUNC_REG(forth_postpone_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_postpone,"POSTPONE",&forth_literal_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_postpone_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;
