@@ -436,6 +436,36 @@ void forth_squote(forth_t* vm)
         *(--vm->sp) = token_len;
     }
 }
+void forth_emit(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    if(vm->output_cb != NULL)
+    {
+        vm->output_cb((char)*(vm->sp++));
+    }
+}
+void forth_type(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    const unsigned int len = *(vm->sp++);
+    const char * str = (char*)*(vm->sp++);
+    for(unsigned int i = 0; i < len; i++)
+    {
+        if(vm->output_cb != NULL)
+        {
+            vm->output_cb(str[i]);
+        }
+    }
+
+}
 void forth_true(forth_t* vm)
 {
     *(--vm->sp) = FORTH_TRUE;
@@ -808,7 +838,9 @@ FORTH_FUNC_REG(forth_fetch_unit,0,forth_fetch,"@",&forth_store_unit);
 FORTH_FUNC_REG(forth_c_fetch_unit,0,forth_с_fetch,"C@",&forth_fetch_unit);
 FORTH_FUNC_REG(forth_char_plus_unit,0,forth_сhar_plus,"CHAR+",&forth_c_fetch_unit);
 FORTH_FUNC_REG(forth_squote_unit,FORTH_FLAGS_IMMEDIATE,forth_squote,"S\"",&forth_char_plus_unit);
-FORTH_FUNC_REG(forth_true_unit,0,forth_true,"TRUE",&forth_squote_unit);
+FORTH_FUNC_REG(forth_emit_unit,0,forth_emit,"EMIT",&forth_squote_unit);
+FORTH_FUNC_REG(forth_type_unit,0,forth_type,"TYPE",&forth_emit_unit);
+FORTH_FUNC_REG(forth_true_unit,0,forth_true,"TRUE",&forth_type_unit);
 FORTH_FUNC_REG(forth_false_unit,0,forth_false,"FALSE",&forth_true_unit);
 FORTH_FUNC_REG(forth_here_unit,0,forth_here,"HERE",&forth_false_unit);
 FORTH_FUNC_REG(forth_current_unit,0,forth_current,"CURRENT",&forth_here_unit);

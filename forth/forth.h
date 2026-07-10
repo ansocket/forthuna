@@ -42,7 +42,7 @@ static const forth_unit_t arg_unitname = \
 typedef struct forth forth_t;
 typedef struct forth_unit forth_unit_t;
 typedef char (*forth_input_t)();
-typedef void (*forth_output_t)(const char* data, unsigned int len);
+typedef void (*forth_output_t)(char ch);
 typedef void (*forth_function_t)(forth_t* vm);
 
 typedef struct forth_unit
