@@ -16,6 +16,10 @@ Yep, there is. Main idea is to using Forth REPL as CLI interface for embedded ta
 It's a combination of words *Forth* (obviously) and name of the Ancient Rome's goddess of luck and fate - *Fortūna*. I think, good luck - is a necessary requirement for memory management in Forth ^^ 
 
 ### Building
-TODO:
+REPL: `cmake -S . -B build -DEXAMPLE_REPL=ON && cmake --build build`
 ### Using
-TODO:
+```
+Forthuna REPL. Enjoy!
+S" Hello world! " TYPE
+Hello world! OK
+```
