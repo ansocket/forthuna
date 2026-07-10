@@ -369,6 +369,73 @@ void forth_fetch(forth_t* vm)
     ptrdiff_t* addr = (ptrdiff_t*)*(vm->sp++);
     *(--vm->sp) = *addr;
 }
+void forth_с_fetch(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    char* addr = (char*)*(vm->sp++);
+    *(--vm->sp) = *addr;
+}
+void forth_сhar_plus(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(vm->sp) += 1;
+}
+void forth_squote(forth_t* vm)
+{
+    char* save_ptr;
+    char* token = strtok_r(&vm->source[vm->in],"\"",&save_ptr);
+    if(token != NULL)
+    {
+        vm->in += (save_ptr - &vm->source[vm->in]);
+    }
+    else
+    {
+        vm->status |= FORTH_STATUS_INPUT_ERROR;
+        return;
+    }
+
+    unsigned int token_len = strlen(token);
+    ptrdiff_t** jmp_addr;
+    if(vm->state == FORTH_STATE_COMPILE)
+    {
+        *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
+        vm->here += sizeof(ptrdiff_t);
+        jmp_addr = (ptrdiff_t**)vm->here;
+        vm->here += sizeof(ptrdiff_t);
+        *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_jmp;
+        vm->here += sizeof(ptrdiff_t);
+    }
+
+    char* str_addr = vm->here;
+    memcpy(str_addr,token,token_len);
+    if(vm->state == FORTH_STATE_COMPILE)
+    {
+        vm->here += token_len;
+        forth_align(vm);
+        *jmp_addr = (ptrdiff_t*)vm->here;
+        *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
+        vm->here += sizeof(ptrdiff_t);
+        *(ptrdiff_t*)vm->here = (ptrdiff_t)str_addr;
+        vm->here += sizeof(ptrdiff_t);
+        *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
+        vm->here += sizeof(ptrdiff_t);
+        *(ptrdiff_t*)vm->here = token_len;
+        vm->here += sizeof(ptrdiff_t);
+    }
+    else
+    {
+        *(--vm->sp) = (ptrdiff_t)str_addr;
+        *(--vm->sp) = token_len;
+    }
+}
 void forth_true(forth_t* vm)
 {
     *(--vm->sp) = FORTH_TRUE;
@@ -738,7 +805,10 @@ FORTH_FUNC_REG(forth_colon_unit,0,forth_colon,":",&forth_or_unit);
 FORTH_FUNC_REG(forth_semicolon_unit,FORTH_FLAGS_IMMEDIATE,forth_semicolon,";",&forth_colon_unit);
 FORTH_FUNC_REG(forth_store_unit,0,forth_store,"!",&forth_semicolon_unit);
 FORTH_FUNC_REG(forth_fetch_unit,0,forth_fetch,"@",&forth_store_unit);
-FORTH_FUNC_REG(forth_true_unit,0,forth_true,"TRUE",&forth_fetch_unit);
+FORTH_FUNC_REG(forth_c_fetch_unit,0,forth_с_fetch,"C@",&forth_fetch_unit);
+FORTH_FUNC_REG(forth_char_plus_unit,0,forth_сhar_plus,"CHAR+",&forth_c_fetch_unit);
+FORTH_FUNC_REG(forth_squote_unit,FORTH_FLAGS_IMMEDIATE,forth_squote,"S\"",&forth_char_plus_unit);
+FORTH_FUNC_REG(forth_true_unit,0,forth_true,"TRUE",&forth_squote_unit);
 FORTH_FUNC_REG(forth_false_unit,0,forth_false,"FALSE",&forth_true_unit);
 FORTH_FUNC_REG(forth_here_unit,0,forth_here,"HERE",&forth_false_unit);
 FORTH_FUNC_REG(forth_current_unit,0,forth_current,"CURRENT",&forth_here_unit);
