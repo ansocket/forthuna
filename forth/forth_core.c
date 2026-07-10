@@ -938,7 +938,16 @@ void forth_variable(forth_t* vm)
     *(--vm->sp) = 0;
     forth_comma(vm);
 }
-
+void forth_paren_brace(forth_t* vm)
+{
+    char* save_ptr;
+    char* token = strtok_r(&vm->source[vm->in],")",&save_ptr);
+    if(token != NULL)
+    {
+        vm->in += (save_ptr - &vm->source[vm->in]);
+    }
+    return;
+}
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
 FORTH_FUNC_REG(forth_does_unit,FORTH_FLAGS_IMMEDIATE,forth_does,"DOES>",&forth_create_unit);
@@ -999,5 +1008,6 @@ FORTH_FUNC_REG(forth_j_unit,0,forth_j,"J",&forth_i_unit);
 FORTH_FUNC_REG(forth_recurse_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_recurse,"RECURSE",&forth_j_unit);
 FORTH_FUNC_REG(forth_constant_unit,0,forth_constant,"CONSTANT",&forth_recurse_unit);
 FORTH_FUNC_REG(forth_variable_unit,0,forth_variable,"VARIABLE",&forth_constant_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_variable_unit);
+FORTH_FUNC_REG(forth_paren_brace_unit,FORTH_FLAGS_IMMEDIATE,forth_paren_brace,"(",&forth_variable_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_paren_brace_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;
