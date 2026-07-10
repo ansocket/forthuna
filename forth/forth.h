@@ -91,6 +91,7 @@ typedef struct forth
     forth_state_t state;
     ptrdiff_t i;
     ptrdiff_t j;
+    char* hld;
 }forth_t;
 
 int forth_init(forth_t* vm, forth_init_t* init_desc);

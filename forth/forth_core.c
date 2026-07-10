@@ -492,13 +492,83 @@ void forth_here(forth_t* vm)
 {
     *(--vm->sp) = (ptrdiff_t)&vm->here;
 }
+void forth_pad(forth_t* vm)
+{
+    *(--vm->sp) = (ptrdiff_t)vm->here + 100; /* TODO: Maybe make this value configured? */
+}
+void forth_hld(forth_t* vm)
+{
+    *(--vm->sp) = (ptrdiff_t)&vm->hld;
+}
+void forth_less_number_sign(forth_t* vm)
+{
+    forth_pad(vm);
+    vm->hld = (char*)*(vm->sp++);
+}
+void forth_number_sign(forth_t* vm)
+{
+    const char digits[] = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    ptrdiff_t number1 = *(vm->sp++);
+    ptrdiff_t number2 = *(vm->sp++);
+    ptrdiff_t res;
+    if(number2 != 0)
+    {
+        res = number2 % vm->base;
+        *(--vm->sp) = number2 / vm->base;
+        *(--vm->sp) = number1;
+    }
+    else
+    {
+        *(--vm->sp) = number2;
+        res = number1 % vm->base;
+        *(--vm->sp) = number1 / vm->base;
+    }
+    *(--vm->hld) = digits[res];
+}
+void forth_number_sign_s(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+
+    while(1)
+    {
+        ptrdiff_t number1 = *(vm->sp);
+        ptrdiff_t number2 = *(vm->sp + 1);
+        if((number1 == 0) && (number2 == 0))
+        {
+            break;
+        }
+        forth_number_sign(vm);
+    }
+}
+void forth_number_sign_greater(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    vm->sp += 2;
+    forth_pad(vm);
+    char* pad_addr = (char*)*(vm->sp++);
+    *(--vm->sp) = (ptrdiff_t)vm->hld;
+    *(--vm->sp) = (ptrdiff_t)(pad_addr - vm->hld);
+}
 void forth_current(forth_t* vm)
 {
     *(--vm->sp) = (ptrdiff_t)&vm->current;
 }
 void forth_base(forth_t* vm)
 {
-    *(--vm->sp) = (ptrdiff_t)vm->base;
+    *(--vm->sp) = (ptrdiff_t)&vm->base;
 }
 void forth_immediate(forth_t* vm)
 {
@@ -843,7 +913,13 @@ FORTH_FUNC_REG(forth_type_unit,0,forth_type,"TYPE",&forth_emit_unit);
 FORTH_FUNC_REG(forth_true_unit,0,forth_true,"TRUE",&forth_type_unit);
 FORTH_FUNC_REG(forth_false_unit,0,forth_false,"FALSE",&forth_true_unit);
 FORTH_FUNC_REG(forth_here_unit,0,forth_here,"HERE",&forth_false_unit);
-FORTH_FUNC_REG(forth_current_unit,0,forth_current,"CURRENT",&forth_here_unit);
+FORTH_FUNC_REG(forth_pad_unit,0,forth_pad,"PAD",&forth_here_unit);
+FORTH_FUNC_REG(forth_hld_unit,0,forth_hld,"HLD",&forth_pad_unit);
+FORTH_FUNC_REG(forth_less_number_sign_unit,0,forth_less_number_sign,"<#",&forth_hld_unit);
+FORTH_FUNC_REG(forth_number_sign_unit,0,forth_number_sign,"#",&forth_less_number_sign_unit);
+FORTH_FUNC_REG(forth_number_sign_s_unit,0,forth_number_sign_s,"#S",&forth_number_sign_unit);
+FORTH_FUNC_REG(forth_number_sign_greater_unit,0,forth_number_sign_greater,"#>",&forth_number_sign_s_unit);
+FORTH_FUNC_REG(forth_current_unit,0,forth_current,"CURRENT",&forth_number_sign_greater_unit);
 FORTH_FUNC_REG(forth_base_unit,0,forth_base,"BASE",&forth_current_unit);
 FORTH_FUNC_REG(forth_immediate_unit,0,forth_immediate,"IMMEDIATE",&forth_base_unit);
 FORTH_FUNC_REG(forth_if_unit,FORTH_FLAGS_IMMEDIATE,forth_if,"IF",&forth_immediate_unit);
