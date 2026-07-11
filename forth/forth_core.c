@@ -971,6 +971,24 @@ void forth_allot(forth_t* vm)
     }
     vm->here += *(vm->sp++);
 }
+void forth_move(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,3))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    ptrdiff_t num = *(vm->sp++);
+    ptrdiff_t* addr2 = (ptrdiff_t*)*(vm->sp++);
+    ptrdiff_t* addr1 = (ptrdiff_t*)*(vm->sp++);
+    if(num > 0)
+    {
+        for(unsigned int i = 0; i < num; i++)
+        {
+            addr2[i] = addr1[i];
+        }
+    }
+}
 void forth_cells(forth_t* vm)
 {
     if(forth_check_sp_underflow(vm,1))
@@ -1386,7 +1404,8 @@ FORTH_FUNC_REG(forth_aligned_unit,0,forth_aligned,"ALIGNED",&forth_align_unit);
 FORTH_FUNC_REG(forth_cells_unit,0,forth_cells,"CELLS",&forth_aligned_unit);
 FORTH_FUNC_REG(forth_cells_plus_unit,0,forth_cell_plus,"CELL+",&forth_cells_unit);
 FORTH_FUNC_REG(forth_allot_unit,0,forth_allot,"ALLOT",&forth_cells_plus_unit);
-FORTH_FUNC_REG(forth_comma_unit,0,forth_comma,",",&forth_allot_unit);
+FORTH_FUNC_REG(forth_move_unit,0,forth_move,"MOVE",&forth_allot_unit);
+FORTH_FUNC_REG(forth_comma_unit,0,forth_comma,",",&forth_move_unit);
 FORTH_FUNC_REG(forth_tick_unit,0,forth_tick,"'",&forth_comma_unit);
 FORTH_FUNC_REG(forth_execute_unit,0,forth_execute,"EXECUTE",&forth_tick_unit);
 FORTH_FUNC_REG(forth_plus_unit,0,forth_plus,"+",&forth_execute_unit);
