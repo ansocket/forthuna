@@ -1254,6 +1254,18 @@ void forth_words(forth_t* vm)
         p = (forth_unit_t*)p->next;
     }
 }
+void forth_depth(forth_t* vm)
+{
+    *(--vm->sp) = (vm->sp_start - vm->sp);
+}
+void forth_decimal(forth_t* vm)
+{
+    vm->base = 10;
+}
+void forth_hex(forth_t* vm)
+{
+    vm->base = 16;
+}
 void forth_left_bracket(forth_t* vm)
 {
     vm->state = FORTH_STATE_INTERPRET;
@@ -1373,7 +1385,9 @@ FORTH_FUNC_REG(forth_sign_unit,0,forth_sign,"SIGN",&forth_number_sign_greater_un
 FORTH_FUNC_REG(forth_dot_unit,0,forth_dot,".",&forth_sign_unit);
 FORTH_FUNC_REG(forth_current_unit,0,forth_current,"CURRENT",&forth_dot_unit);
 FORTH_FUNC_REG(forth_base_unit,0,forth_base,"BASE",&forth_current_unit);
-FORTH_FUNC_REG(forth_immediate_unit,0,forth_immediate,"IMMEDIATE",&forth_base_unit);
+FORTH_FUNC_REG(forth_decimal_unit,0,forth_decimal,"DECIMAL",&forth_base_unit);
+FORTH_FUNC_REG(forth_hex_unit,0,forth_hex,"HEX",&forth_decimal_unit);
+FORTH_FUNC_REG(forth_immediate_unit,0,forth_immediate,"IMMEDIATE",&forth_hex_unit);
 FORTH_FUNC_REG(forth_if_unit,FORTH_FLAGS_IMMEDIATE | FORTH_FLAGS_COMPILE_ONLY,forth_if,"IF",&forth_immediate_unit);
 FORTH_FUNC_REG(forth_then_unit,FORTH_FLAGS_IMMEDIATE | FORTH_FLAGS_COMPILE_ONLY,forth_then,"THEN",&forth_if_unit);
 FORTH_FUNC_REG(forth_else_unit,FORTH_FLAGS_IMMEDIATE | FORTH_FLAGS_COMPILE_ONLY,forth_else,"ELSE",&forth_then_unit);
@@ -1392,7 +1406,8 @@ FORTH_FUNC_REG(forth_recurse_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIA
 FORTH_FUNC_REG(forth_constant_unit,0,forth_constant,"CONSTANT",&forth_recurse_unit);
 FORTH_FUNC_REG(forth_variable_unit,0,forth_variable,"VARIABLE",&forth_constant_unit);
 FORTH_FUNC_REG(forth_words_unit,0,forth_words,"WORDS",&forth_variable_unit);
-FORTH_FUNC_REG(forth_paren_brace_unit,FORTH_FLAGS_IMMEDIATE,forth_paren_brace,"(",&forth_words_unit);
+FORTH_FUNC_REG(forth_depth_init,0,forth_depth,"DEPTH",&forth_words_unit);
+FORTH_FUNC_REG(forth_paren_brace_unit,FORTH_FLAGS_IMMEDIATE,forth_paren_brace,"(",&forth_depth_init);
 FORTH_FUNC_REG(forth_left_bracket_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_left_bracket,"[",&forth_paren_brace_unit);
 FORTH_FUNC_REG(forth_right_bracket_unit,0,forth_right_bracket,"]",&forth_left_bracket_unit);
 FORTH_FUNC_REG(forth_literal_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_literal,"LITERAL",&forth_right_bracket_unit);
