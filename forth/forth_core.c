@@ -254,6 +254,15 @@ void forth_xor(forth_t* vm)
     }
     *(++vm->sp) = *(vm->sp + 1) ^ *(vm->sp);
 }
+void forth_over(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(--vm->sp) = *(vm->sp + 1);
+}
 void forth_lshift(forth_t* vm)
 {
     if(forth_check_sp_underflow(vm,2))
@@ -1384,7 +1393,8 @@ FORTH_FUNC_REG(forth_plus_unit,0,forth_plus,"+",&forth_execute_unit);
 FORTH_FUNC_REG(forth_minus_unit,0,forth_minus,"-",&forth_plus_unit);
 FORTH_FUNC_REG(forth_mul_unit,0,forth_mul,"*",&forth_minus_unit);
 FORTH_FUNC_REG(forth_xor_unit,0,forth_xor,"XOR",&forth_mul_unit);
-FORTH_FUNC_REG(forth_lshift_unit,0,forth_lshift,"LSHIFT",&forth_xor_unit);
+FORTH_FUNC_REG(forth_over_unit,0,forth_over,"OVER",&forth_xor_unit);
+FORTH_FUNC_REG(forth_lshift_unit,0,forth_lshift,"LSHIFT",&forth_over_unit);
 FORTH_FUNC_REG(forth_rshift_unit,0,forth_rshift,"RSHIFT",&forth_lshift_unit);
 FORTH_FUNC_REG(forth_mod_unit,0,forth_mod,"MOD",&forth_rshift_unit);
 FORTH_FUNC_REG(forth_div_unit,0,forth_div,"/",&forth_mod_unit);
