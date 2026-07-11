@@ -27,7 +27,7 @@ extern "C"{
         (type *)((char *)__mptr - offsetof(type,member));})
 
 #define FORTH_FUNC_REG(arg_unitname, arg_flags, arg_func, arg_name, arg_next) \
-static const forth_unit_t arg_unitname = \
+static const forth_unit_t arg_unitname __attribute__((section(".text"))) = \
 {                                               \
     .flags = arg_flags,                             \
     .name = arg_name,                                \

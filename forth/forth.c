@@ -83,11 +83,11 @@ int forth_process(forth_t* vm)
     {
         if(vm->state == FORTH_STATE_INTERPRET)
         {
-            forth_send_report(vm,"OK");
+            forth_send_report(vm," OK");
         }
         else
         {
-            forth_send_report(vm,"COMPILED");
+            forth_send_report(vm," COMPILED");
         }
         
     }
