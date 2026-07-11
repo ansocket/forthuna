@@ -521,6 +521,17 @@ void forth_fetch(forth_t* vm)
     ptrdiff_t* addr = (ptrdiff_t*)*(vm->sp++);
     *(--vm->sp) = *addr;
 }
+void forth_plus_store(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    ptrdiff_t* addr = (ptrdiff_t*)*(vm->sp++);
+    ptrdiff_t value = *(vm->sp++);
+    *addr += value;
+}
 void forth_с_fetch(forth_t* vm)
 {
     if(forth_check_sp_underflow(vm,1))
@@ -1439,7 +1450,8 @@ FORTH_FUNC_REG(forth_colon_unit,0,forth_colon,":",&forth_one_minus_unit);
 FORTH_FUNC_REG(forth_semicolon_unit,FORTH_FLAGS_IMMEDIATE | FORTH_FLAGS_COMPILE_ONLY,forth_semicolon,";",&forth_colon_unit);
 FORTH_FUNC_REG(forth_store_unit,0,forth_store,"!",&forth_semicolon_unit);
 FORTH_FUNC_REG(forth_fetch_unit,0,forth_fetch,"@",&forth_store_unit);
-FORTH_FUNC_REG(forth_c_fetch_unit,0,forth_с_fetch,"C@",&forth_fetch_unit);
+FORTH_FUNC_REG(forth_plus_store_unit,0,forth_plus_store,"+!",&forth_fetch_unit);
+FORTH_FUNC_REG(forth_c_fetch_unit,0,forth_с_fetch,"C@",&forth_plus_store_unit);
 FORTH_FUNC_REG(forth_c_store_unit,0,forth_с_store,"C!",&forth_c_fetch_unit);
 FORTH_FUNC_REG(forth_c_comma_unit,0,forth_с_comma,"C,",&forth_c_store_unit);
 FORTH_FUNC_REG(forth_char_unit,0,forth_сhar,"CHAR",&forth_c_comma_unit);
