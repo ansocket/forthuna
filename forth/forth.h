@@ -17,7 +17,6 @@ extern "C"{
 #define FORTH_STATUS_EXECUTE_ERROR      (1UL << 4)
 #define FORTH_STATUS_EXECUTE_EXIT       (1UL << 5)
 #define FORTH_STATUS_WRONG_STATE        (1UL << 6)
-#define FORTH_STATUS_COMPILE_ONLY        (1UL << 7)
 
 #define FORTH_TRUE                      (-1L)
 #define FORTH_FALSE                     (0L)

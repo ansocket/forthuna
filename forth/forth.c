@@ -48,7 +48,9 @@ int forth_process(forth_t* vm)
     {
         if(vm->status & FORTH_STATUS_NOTFOUND)
         {
-            forth_send_report(vm,"NOTFOUND");
+            *(--vm->sp) = strlen((char*)*vm->sp);
+            forth_type(vm);
+            forth_send_report(vm," IS NOTFOUND");
         }
         else if(vm->status & FORTH_STATUS_ZERO_DIVISION)
         {
@@ -74,9 +76,9 @@ int forth_process(forth_t* vm)
         {
             forth_send_report(vm,"WRONG_STATE");
         }
-        else if(vm->status & FORTH_STATUS_COMPILE_ONLY)
+        else
         {
-            forth_send_report(vm,"COMPILE_ONLY");
+            forth_send_report(vm,"INVALID_STATUS");
         }
     }
     else
