@@ -147,8 +147,10 @@ void forth_evaluate(forth_t* vm)
         return;
     }
     int counter = *(vm->sp++);
-    char* temp_source = vm->source;
+    char* temp_source = 
     vm->source = (char*)*(vm->sp++); 
+    *(--vm->rsp) = (ptrdiff_t)vm->in;
+    *(--vm->rsp) = (ptrdiff_t)vm->source;
     vm->in = 0;
     vm->source[counter] = '\0'; 
     do
@@ -209,7 +211,8 @@ void forth_evaluate(forth_t* vm)
         }
 
     } while (1);
-    vm->source = temp_source;
+    vm->source = (char*)*(vm->rsp++);
+    vm->in = *(vm->rsp++);
 }
 void forth_parse(forth_t* vm)
 {
