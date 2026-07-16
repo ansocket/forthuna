@@ -16,6 +16,7 @@ void forth_execute(forth_t* vm);
 void forth_evaluate(forth_t* vm);
 void forth_type(forth_t* vm);
 void forth_find(forth_t* vm);
+void forth_parse_name(forth_t* vm);
 #ifdef __cplusplus
 }
 #endif

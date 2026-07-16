@@ -90,21 +90,23 @@ void forth_align(forth_t* vm)
 }
 void forth_tick(forth_t* vm)
 {
-    char* save_ptr;
-    char* token = strtok_r(&vm->source[vm->in]," ",&save_ptr);
-    if(token != NULL)
+    forth_parse_name(vm);
+    unsigned int token_len = *(vm->sp++);
+    if(token_len == 0)
     {
-        vm->in += (save_ptr - &vm->source[vm->in]);
+        vm->status |= FORTH_STATUS_INPUT_ERROR;
+        return;
     }
-    else
+    char* token = (char*)*(vm->sp++);
+    if(token == NULL)
     {
-        vm->status |= FORTH_STATUS_NOTFOUND;
+        vm->status |= FORTH_STATUS_INPUT_ERROR;
         return;
     }
     forth_unit_t* p = vm->current;
     while(p != NULL)
     {
-        if(strcmp(p->name,token) == 0)
+        if(strncmp(p->name,token,strlen(p->name)) == 0)
         {
             *(--vm->sp) = (ptrdiff_t)p->cfa;
             return;
@@ -144,22 +146,22 @@ void forth_evaluate(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-    int counter = *(vm->sp++); /* TODO: add length check */
-    char* str = (char*)*(vm->sp++); 
-    char* save_ptr = str;
+    int counter = *(vm->sp++);
+    char* temp_source = vm->source;
+    vm->source = (char*)*(vm->sp++); 
     vm->in = 0;
-    
-    char* token; 
+    vm->source[counter] = '\0'; 
     do
     {
-        token = strtok_r(&vm->source[vm->in]," ",&save_ptr);
-        if(token == NULL)
+        forth_parse_name(vm);
+        counter = *(vm->sp++);
+        if(counter == 0)
         {
+            forth_drop(vm);
             break;
         }
-        vm->in += (save_ptr - &vm->source[vm->in]);
-        *(--vm->sp) = (ptrdiff_t)token;
-        
+        vm->source[vm->in] = '\0';
+        vm->in++;
         forth_find(vm);
         char find_result = *(vm->sp++);
         if(find_result != 0)
@@ -181,7 +183,7 @@ void forth_evaluate(forth_t* vm)
         else
         {
             char* end;
-            long int result = strtol(token, &end, vm->base);
+            long int result = strtol((const char*)*(vm->sp), &end, vm->base);
             
             if(*end == 0)
             {
@@ -206,7 +208,42 @@ void forth_evaluate(forth_t* vm)
             }
         }
 
-    } while (token != NULL);
+    } while (1);
+    vm->source = temp_source;
+}
+void forth_parse(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    const char delim = (char)*(vm->sp++);
+    *(--vm->sp) = (ptrdiff_t)&vm->source[vm->in];
+    ptrdiff_t counter = 0;
+    while(vm->source[vm->in] != 0)
+    {
+        if(vm->source[vm->in] == delim)
+        {
+            break;
+        }
+        counter++;
+        vm->in++;
+    }
+    *(--vm->sp) = counter;
+}
+void forth_parse_name(forth_t* vm)
+{
+    while(vm->source[vm->in] != 0)
+    {
+        if(vm->source[vm->in] != ' ')
+        {
+            break;
+        }
+        vm->in++;
+    }
+    *(--vm->sp) = ' ';
+    forth_parse(vm);
 }
 void forth_plus(forth_t* vm)
 {
@@ -458,18 +495,13 @@ void forth_one_minus(forth_t* vm)
 }
 void forth_colon(forth_t* vm)
 {
-    char* save_ptr;
-    char* token = strtok_r(&vm->source[vm->in]," ",&save_ptr);
-    if(token != NULL)
-    {
-        vm->in += (save_ptr - &vm->source[vm->in]);
-    }
-    else
+    forth_parse_name(vm);
+    unsigned int token_len = *(vm->sp++);
+    if(token_len == 0)
     {
         vm->status |= FORTH_STATUS_NOTFOUND;
         return;
     }
-    unsigned int token_len = strlen(token);
     forth_align(vm);
     forth_unit_t* unit = (forth_unit_t*)vm->here;
     vm->here += sizeof(forth_unit_t);
@@ -477,7 +509,7 @@ void forth_colon(forth_t* vm)
     unit->name = (char*)unit->data;
     unit->next = vm->current;
     vm->current = unit;
-    memcpy((char*)unit->name,token,token_len);
+    memcpy((char*)unit->name,(char*)*(vm->sp++),token_len);
     *((char*)unit->name + token_len) = '\0';
     vm->here += token_len + 1;
     forth_align(vm);
@@ -545,32 +577,24 @@ void forth_с_store(forth_t* vm)
 }
 void forth_сhar(forth_t* vm)
 {
-    char* save_ptr;
-    char* token = strtok_r(&vm->source[vm->in]," ",&save_ptr);
-    if(token != NULL)
-    {
-        vm->in += (save_ptr - &vm->source[vm->in]);
-    }
-    else
+    forth_parse_name(vm);
+    if(*(vm->sp++) == 0)
     {
         vm->status |= FORTH_STATUS_INPUT_ERROR;
         return;
     }
+    char* token = (char*)*(vm->sp++);
     *(--vm->sp) = (ptrdiff_t)token[0];
 }
 void forth_bracket_сhar(forth_t* vm)
 {
-    char* save_ptr;
-    char* token = strtok_r(&vm->source[vm->in]," ",&save_ptr);
-    if(token != NULL)
-    {
-        vm->in += (save_ptr - &vm->source[vm->in]);
-    }
-    else
+    forth_parse_name(vm);
+    if(*(vm->sp++) == 0)
     {
         vm->status |= FORTH_STATUS_INPUT_ERROR;
         return;
     }
+    char* token = (char*)*(vm->sp++);
     *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
     vm->here += sizeof(ptrdiff_t);
     *(ptrdiff_t*)vm->here = (ptrdiff_t)token[0];
@@ -606,19 +630,11 @@ void forth_сhars(forth_t* vm)
 }
 void forth_squote(forth_t* vm)
 {
-    char* save_ptr;
-    char* token = strtok_r(&vm->source[vm->in],"\"",&save_ptr);
-    if(token != NULL)
-    {
-        vm->in += (save_ptr - &vm->source[vm->in]);
-    }
-    else
-    {
-        vm->status |= FORTH_STATUS_INPUT_ERROR;
-        return;
-    }
-
-    unsigned int token_len = strlen(token);
+    *(--vm->sp) = '\"';
+    forth_parse(vm);
+    vm->in++;
+    unsigned int token_len = *(vm->sp++);
+    char* token = (char*)*(vm->sp++);
     ptrdiff_t** jmp_addr;
     if(vm->state == FORTH_STATE_COMPILE)
     {
@@ -654,19 +670,11 @@ void forth_squote(forth_t* vm)
 }
 void forth_dot_quote(forth_t* vm)
 {
-    char* save_ptr;
-    char* token = strtok_r(&vm->source[vm->in],"\"",&save_ptr);
-    if(token != NULL)
-    {
-        vm->in += (save_ptr - &vm->source[vm->in]);
-    }
-    else
-    {
-        vm->status |= FORTH_STATUS_INPUT_ERROR;
-        return;
-    }
-
-    unsigned int token_len = strlen(token);
+    *(--vm->sp) = '\"';
+    forth_parse(vm);
+    vm->in++;
+    unsigned int token_len = *(vm->sp++);
+    char* token = (char*)*(vm->sp++);
     ptrdiff_t** jmp_addr;
     if(vm->state == FORTH_STATE_COMPILE)
     {
@@ -902,7 +910,9 @@ void forth_find(forth_t* vm)
     {
         if(strcmp(p->name,token) == 0)
         {
-            if(!((vm->state == FORTH_STATE_INTERPRET) && ((p->flags & FORTH_FLAGS_COMPILE_ONLY) == FORTH_FLAGS_COMPILE_ONLY)))
+            if(!((vm->state == FORTH_STATE_INTERPRET) 
+                            && ((p->flags & FORTH_FLAGS_COMPILE_ONLY) == FORTH_FLAGS_COMPILE_ONLY) 
+                                && ((p->flags & FORTH_FLAGS_INTERPRET_ONLY) != FORTH_FLAGS_INTERPRET_ONLY)))
             {
 
                 break;
@@ -929,18 +939,14 @@ void forth_find(forth_t* vm)
 }
 void forth_create(forth_t* vm)
 {
-    char* save_ptr;
-    char* token = strtok_r(&vm->source[vm->in]," ",&save_ptr);
-    if(token != NULL)
-    {
-        vm->in += (save_ptr - &vm->source[vm->in]);
-    }
-    else
+    forth_parse_name(vm);
+    unsigned int token_len = *(vm->sp++);
+    if(token_len == 0)
     {
         vm->status |= FORTH_STATUS_INPUT_ERROR;
         return;
     }
-    unsigned int token_len = strlen(token);
+    char* token = (char*)*(vm->sp++);
     forth_align(vm);
     forth_unit_t* unit = (forth_unit_t*)vm->here;
     vm->here += sizeof(forth_unit_t);
@@ -1351,12 +1357,10 @@ void forth_variable(forth_t* vm)
 }
 void forth_paren_brace(forth_t* vm)
 {
-    char* save_ptr;
-    char* token = strtok_r(&vm->source[vm->in],")",&save_ptr);
-    if(token != NULL)
-    {
-        vm->in += (save_ptr - &vm->source[vm->in]);
-    }
+    *(--vm->sp) = ')';
+    forth_parse(vm);
+    vm->in++;
+    vm->sp += 2;
     return;
 }
 void forth_words(forth_t* vm)
@@ -1405,21 +1409,23 @@ void forth_literal(forth_t* vm)
 }
 void forth_postpone(forth_t* vm)
 {
-    char* save_ptr;
-    char* token = strtok_r(&vm->source[vm->in]," ",&save_ptr);
-    if(token != NULL)
+    forth_parse_name(vm);
+    unsigned int token_len = *(vm->sp++);
+    if(token_len == 0)
     {
-        vm->in += (save_ptr - &vm->source[vm->in]);
+        vm->status |= FORTH_STATUS_INPUT_ERROR;
+        return;
     }
-    else
+    char* token = (char*)*(vm->sp++);
+    if(token == NULL)
     {
-        vm->status |= FORTH_STATUS_NOTFOUND;
+        vm->status |= FORTH_STATUS_INPUT_ERROR;
         return;
     }
     forth_unit_t* p = vm->current;
     while(p != NULL)
     {
-        if(strcmp(p->name,token) == 0)
+        if(strncmp(p->name,token,strlen(p->name)) == 0)
         {
             break;
         }
@@ -1487,9 +1493,10 @@ FORTH_FUNC_REG(forth_char_unit,0,forth_сhar,"CHAR",&forth_c_comma_unit);
 FORTH_FUNC_REG(forth_bracket_char_unit,FORTH_FLAGS_IMMEDIATE,forth_bracket_сhar,"[CHAR]",&forth_char_unit);
 FORTH_FUNC_REG(forth_char_plus_unit,0,forth_сhar_plus,"CHAR+",&forth_bracket_char_unit);
 FORTH_FUNC_REG(forth_chars_unit,0,forth_сhars,"CHARS",&forth_char_plus_unit);
-FORTH_FUNC_REG(forth_squote_imm_unit,FORTH_FLAGS_IMMEDIATE,forth_squote,"S\"",&forth_chars_unit);
-FORTH_FUNC_REG(forth_squote_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_squote,"S\"",&forth_squote_imm_unit);
-FORTH_FUNC_REG(forth_dot_quote_unit,FORTH_FLAGS_IMMEDIATE | FORTH_FLAGS_COMPILE_ONLY,forth_dot_quote,".\"",&forth_squote_unit);
+FORTH_FUNC_REG(forth_squote_unit,FORTH_FLAGS_INTERPRET_ONLY,forth_squote,"S\"",&forth_chars_unit);
+FORTH_FUNC_REG(forth_squote_imm_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_squote,"S\"",&forth_squote_unit);
+FORTH_FUNC_REG(forth_dot_quote_unit_imm,FORTH_FLAGS_IMMEDIATE | FORTH_FLAGS_COMPILE_ONLY,forth_dot_quote,".\"",&forth_squote_imm_unit);
+FORTH_FUNC_REG(forth_dot_quote_unit,FORTH_FLAGS_INTERPRET_ONLY,forth_dot_quote,".\"",&forth_dot_quote_unit_imm);
 FORTH_FUNC_REG(forth_emit_unit,0,forth_emit,"EMIT",&forth_dot_quote_unit);
 FORTH_FUNC_REG(forth_cr_unit,0,forth_cr,"CR",&forth_emit_unit);
 FORTH_FUNC_REG(forth_space_unit,0,forth_space,"SPACE",&forth_cr_unit);
@@ -1535,5 +1542,8 @@ FORTH_FUNC_REG(forth_left_bracket_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IM
 FORTH_FUNC_REG(forth_right_bracket_unit,0,forth_right_bracket,"]",&forth_left_bracket_unit);
 FORTH_FUNC_REG(forth_literal_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_literal,"LITERAL",&forth_right_bracket_unit);
 FORTH_FUNC_REG(forth_postpone_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_postpone,"POSTPONE",&forth_literal_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_postpone_unit);
+FORTH_FUNC_REG(forth_evaluate_unit,0,forth_evaluate,"EVALUATE",&forth_postpone_unit);
+FORTH_FUNC_REG(forth_parse_unit,0,forth_parse,"PARSE",&forth_evaluate_unit);
+FORTH_FUNC_REG(forth_parse_name_unit,0,forth_parse_name,"PARSE-NAME",&forth_parse_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_parse_name_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;

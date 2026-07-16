@@ -9,6 +9,7 @@ extern "C"{
 
 #define FORTH_FLAGS_IMMEDIATE           (1UL << 0)
 #define FORTH_FLAGS_COMPILE_ONLY        (1UL << 1)
+#define FORTH_FLAGS_INTERPRET_ONLY      (1UL << 2)
 
 #define FORTH_STATUS_NOTFOUND           (1UL << 0)
 #define FORTH_STATUS_ZERO_DIVISION      (1UL << 1)
@@ -26,7 +27,7 @@ extern "C"{
         (type *)((char *)__mptr - offsetof(type,member));})
 
 #define FORTH_FUNC_REG(arg_unitname, arg_flags, arg_func, arg_name, arg_next) \
-static const forth_unit_t arg_unitname __attribute__((section(".text"))) = \
+static const forth_unit_t arg_unitname __attribute__((section(".rodata"))) = \
 {                                               \
     .flags = arg_flags,                             \
     .name = arg_name,                                \
