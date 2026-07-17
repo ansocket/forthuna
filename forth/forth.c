@@ -34,10 +34,19 @@ int forth_process(forth_t* vm)
     int ch_counter = 0;
     do
     {
-        ch = vm->input_cb();
+        forth_key(vm);
+        if((vm->status & FORTH_STATUS_INPUT_ERROR) == FORTH_STATUS_INPUT_ERROR)
+        {
+            break;
+        }
+        ch = *(vm->sp++);
         if(vm->local_echo && vm->output_cb)
         {
             vm->output_cb(ch);
+        }
+        if(ch == '\n')
+        {
+            break;
         }
         vm->tib[ch_counter++] = ch;
     }while(ch != '\0');

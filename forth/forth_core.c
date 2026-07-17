@@ -248,6 +248,44 @@ void forth_parse_name(forth_t* vm)
     *(--vm->sp) = ' ';
     forth_parse(vm);
 }
+void forth_key(forth_t* vm)
+{
+    if(vm->input_cb == NULL)
+    {
+        vm->status |= FORTH_STATUS_INPUT_ERROR;
+        return;
+    }
+    *(--vm->sp) = vm->input_cb(vm);
+}
+void forth_accept(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+
+    ptrdiff_t max_len = *(vm->sp++);
+    char* addr = (char*)*(vm->sp++);
+    ptrdiff_t count = 0;
+    if(vm->input_cb == NULL) 
+    {
+        vm->status |= FORTH_STATUS_INPUT_ERROR;
+        return;
+    }
+    while(max_len)
+    {
+        char ch = vm->input_cb();
+        if(ch == '\0')
+        {
+            break;
+        }
+        addr[count] = ch;
+        count++;
+        max_len--;
+    }
+    *(--vm->sp) = count;
+}
 void forth_plus(forth_t* vm)
 {
     if(forth_check_sp_underflow(vm,2))
@@ -913,9 +951,8 @@ void forth_find(forth_t* vm)
     {
         if(strcmp(p->name,token) == 0)
         {
-            if(!((vm->state == FORTH_STATE_INTERPRET) 
-                            && ((p->flags & FORTH_FLAGS_COMPILE_ONLY) == FORTH_FLAGS_COMPILE_ONLY) 
-                                && ((p->flags & FORTH_FLAGS_INTERPRET_ONLY) != FORTH_FLAGS_INTERPRET_ONLY)))
+            if(!(((vm->state == FORTH_STATE_COMPILE) && ((p->flags & FORTH_FLAGS_INTERPRET_ONLY) == FORTH_FLAGS_INTERPRET_ONLY)) ||
+                            (vm->state == FORTH_STATE_INTERPRET) && ((p->flags & FORTH_FLAGS_COMPILE_ONLY) == FORTH_FLAGS_COMPILE_ONLY)))
             {
 
                 break;
@@ -1548,5 +1585,7 @@ FORTH_FUNC_REG(forth_postpone_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDI
 FORTH_FUNC_REG(forth_evaluate_unit,0,forth_evaluate,"EVALUATE",&forth_postpone_unit);
 FORTH_FUNC_REG(forth_parse_unit,0,forth_parse,"PARSE",&forth_evaluate_unit);
 FORTH_FUNC_REG(forth_parse_name_unit,0,forth_parse_name,"PARSE-NAME",&forth_parse_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_parse_name_unit);
+FORTH_FUNC_REG(forth_key_unit,0,forth_key,"KEY",&forth_parse_name_unit);
+FORTH_FUNC_REG(forth_accept_unit,0,forth_accept,"ACCEPT",&forth_key_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_accept_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;

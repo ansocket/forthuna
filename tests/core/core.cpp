@@ -2,34 +2,45 @@
 #include "forth.h"
 
 namespace {
-TEST(forth_core, Init) {
+
+class CoreTests : public testing::Test {
+ protected:  // You should make the members protected s.t. they can be
+             // accessed from sub-classes.
+  // virtual void SetUp() will be called before each test is run.  You
+  // should define it if you need to initialize the variables.
+  // Otherwise, this can be skipped.
+  void SetUp() override {
+    this->memory = (ptrdiff_t*)malloc(4096);
+    forth_init_t init_desc = 
+    {
+      .full_memory = this->memory,
+      .full_memory_cells = 4096/sizeof(ptrdiff_t),
+      .sp_cells = 32, 
+      .rsp_cells = 32,
+      .tib_bytes = 1024
+    };
+    forth_init(&vm,&init_desc);
+  }
+
+  // virtual void TearDown() will be called after each test is run.
+  // You should define it if there is cleanup work to do.  Otherwise,
+  // you don't have to provide it.
+  //
+  virtual void TearDown() {
+    free(this->memory);
+  }
+
+  ptrdiff_t* memory;
   forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+};
+
+
+TEST_F(CoreTests, Init) {
+
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp, vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, simple) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, simple) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -45,21 +56,9 @@ TEST(forth_core, simple) {
   EXPECT_EQ(*vm.sp++,3);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
 }
-TEST(forth_core, execute) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, execute) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -75,20 +74,8 @@ TEST(forth_core, execute) {
   EXPECT_EQ(*vm.sp++,3);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, colon) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, colon) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -104,20 +91,8 @@ TEST(forth_core, colon) {
   EXPECT_EQ(*vm.sp++,10);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, c_variable) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, c_variable) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -138,20 +113,8 @@ TEST(forth_core, c_variable) {
   EXPECT_EQ(*vm.sp++,10);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, create_does) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, create_does) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -166,20 +129,8 @@ TEST(forth_core, create_does) {
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,10);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, create_does_var) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, create_does_var) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -195,20 +146,8 @@ TEST(forth_core, create_does_var) {
   EXPECT_EQ(*vm.sp++,10);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, if_then) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, if_then) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -223,20 +162,8 @@ TEST(forth_core, if_then) {
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,30);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, if_then_else) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, if_then_else) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -253,20 +180,8 @@ TEST(forth_core, if_then_else) {
   EXPECT_EQ(*vm.sp++,109);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, do_loop) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, do_loop) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -291,20 +206,8 @@ TEST(forth_core, do_loop) {
   EXPECT_EQ(*vm.sp++,0);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, do_loop_nested) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, do_loop_nested) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -322,20 +225,8 @@ TEST(forth_core, do_loop_nested) {
   EXPECT_EQ(*vm.sp++,1);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, do_plus_loop) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, do_plus_loop) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -354,20 +245,8 @@ TEST(forth_core, do_plus_loop) {
   EXPECT_EQ(*vm.sp++, 2);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, do_loop_leave) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, do_loop_leave) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -392,20 +271,8 @@ TEST(forth_core, do_loop_leave) {
   EXPECT_EQ(*vm.sp++, 0);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, dup) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, dup) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -423,20 +290,8 @@ TEST(forth_core, dup) {
   EXPECT_EQ(*vm.sp++, 10);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, logic) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, logic) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -460,20 +315,8 @@ TEST(forth_core, logic) {
   EXPECT_EQ(*vm.sp++, FORTH_TRUE);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, recurse) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, recurse) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -489,20 +332,8 @@ TEST(forth_core, recurse) {
   EXPECT_EQ(*vm.sp++, 24);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, swap) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, swap) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -519,20 +350,8 @@ TEST(forth_core, swap) {
   EXPECT_EQ(*vm.sp++, 20);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, sq) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, sq) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -551,20 +370,8 @@ TEST(forth_core, sq) {
   EXPECT_EQ(*vm.sp++, 8);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, sq1) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, sq1) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -582,20 +389,8 @@ TEST(forth_core, sq1) {
   EXPECT_EQ(*vm.sp++, 2);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, emit) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, emit) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -613,20 +408,8 @@ TEST(forth_core, emit) {
   forth_process(&vm);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, type) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 128
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, type) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -635,7 +418,7 @@ TEST(forth_core, type) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = "S\" bebebe\n\" TYPE ";
+    const char* input_string = "S\" bebebe\" TYPE CR ";
     return input_string[i++];
         });
   forth_reg_output_cb(&vm,[](char ch) -> void {
@@ -644,20 +427,8 @@ TEST(forth_core, type) {
   forth_process(&vm);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, formatting) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 1024
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, formatting) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -680,20 +451,8 @@ TEST(forth_core, formatting) {
   forth_process(&vm);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, dot) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 1024
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, dot) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -711,21 +470,9 @@ TEST(forth_core, dot) {
   forth_process(&vm);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
 
-TEST(forth_core, multiple_runs) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 1024
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, multiple_runs) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -746,20 +493,8 @@ TEST(forth_core, multiple_runs) {
   EXPECT_EQ(*vm.sp++, 70);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, begin_while) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 1024
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, begin_while) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -781,20 +516,8 @@ TEST(forth_core, begin_while) {
   EXPECT_EQ(*vm.sp++, 3);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, begin_while_repeat) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 1024
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, begin_while_repeat) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -822,20 +545,8 @@ TEST(forth_core, begin_while_repeat) {
   EXPECT_EQ(*vm.sp++, 0);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
-TEST(forth_core, literal) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 1024
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, literal) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -854,21 +565,9 @@ TEST(forth_core, literal) {
   EXPECT_EQ(*vm.sp++, 6);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
 
-TEST(forth_core, postpone) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 1024
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, postpone) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -887,21 +586,9 @@ TEST(forth_core, postpone) {
   EXPECT_EQ(*vm.sp++, 99);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
 
-TEST(forth_core, unloop) {
-  forth vm;
-  ptrdiff_t* memory = (ptrdiff_t*)malloc(4096);
-  forth_init_t init_desc = 
-  {
-    .full_memory = memory,
-    .full_memory_cells = 4096/sizeof(ptrdiff_t),
-    .sp_cells = 32, 
-    .rsp_cells = 32,
-    .tib_bytes = 1024
-  };
-  forth_init(&vm,&init_desc);
+TEST_F(CoreTests, unloop) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -927,6 +614,5 @@ TEST(forth_core, unloop) {
   EXPECT_EQ(*vm.sp++, 4);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  free(memory);
 }
 
