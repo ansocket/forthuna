@@ -29,6 +29,7 @@ int forth_process(forth_t* vm)
 {
     vm->pc = NULL;
     vm->in = 0;
+    vm->status = 0;
     if(vm->input_cb == NULL) return -1;
     char ch;
     int ch_counter = 0;

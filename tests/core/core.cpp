@@ -40,7 +40,7 @@ TEST_F(CoreTests, Init) {
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp, vm.sp_start);
 }
-TEST_F(CoreTests, simple) {
+TEST_F(CoreTests, numbers) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
     // if(res == '\n') 
@@ -49,15 +49,16 @@ TEST_F(CoreTests, simple) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = "1 2 +";
+    const char* input_string = "1 2";
     return input_string[i++];
         });
   forth_process(&vm);
-  EXPECT_EQ(*vm.sp++,3);
+  EXPECT_EQ(*vm.sp++,2);
+  EXPECT_EQ(*vm.sp++,1);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
-}
+
 TEST_F(CoreTests, execute) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
@@ -72,6 +73,30 @@ TEST_F(CoreTests, execute) {
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,3);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, ariph) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " + \n 1 2 + \n - \n 1 2 - ";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,3);
+  EXPECT_EQ(vm.status,0);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,-1);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
@@ -101,7 +126,7 @@ TEST_F(CoreTests, c_variable) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = "VAR1 @ VAR2 @ 22 VAR2 ! 33 VAR1 ! VAR1 @ VAR2 @";
+    const char* input_string = "VAR1 @ VAR2 @ 22 VAR2 ! 33 VAR1 ! VAR1 @ VAR2 @ \n @ \n !";
     return input_string[i++];
         });
     forth_add_variable(&vm,"VAR1",10);
@@ -110,6 +135,75 @@ TEST_F(CoreTests, c_variable) {
   EXPECT_EQ(*vm.sp++,22);
   EXPECT_EQ(*vm.sp++,33);
   EXPECT_EQ(*vm.sp++,20);
+  EXPECT_EQ(*vm.sp++,10);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+}
+TEST_F(CoreTests, c_func) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "BEBE \n BEBE";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_NOTFOUND);
+  forth_add_function(&vm, "BEBE", [](forth_t* vm) -> void
+{
+  *(--vm->sp) = 99;
+}, 0);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,99);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, c_var_ptr) {
+  ptrdiff_t variable = 20;
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "BEBE \n BEBE @ 10 BEBE !";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_NOTFOUND);
+  forth_add_variable_ptr(&vm, "BEBE", &variable);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,20);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+  EXPECT_EQ(variable,10);
+}
+TEST_F(CoreTests, c_const) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "BEBE \n BEBE";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_NOTFOUND);
+  forth_add_constant(&vm, "BEBE", 10);
+  forth_process(&vm);
   EXPECT_EQ(*vm.sp++,10);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
@@ -300,7 +394,8 @@ TEST_F(CoreTests, logic) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = " 10 15 < 88 105 > 88 33 = 55 27 > 44 44 = TRUE TRUE AND FALSE TRUE OR TRUE FALSE AND FALSE FALSE OR";
+    const char* input_string = " 10 15 < 88 105 > 88 33 = 55 27 > 44 44 = TRUE TRUE AND FALSE TRUE OR TRUE FALSE AND FALSE FALSE OR \n \
+                                < \n > \n = \n AND \n OR \n XOR";
     return input_string[i++];
         });
   forth_process(&vm);
@@ -315,6 +410,18 @@ TEST_F(CoreTests, logic) {
   EXPECT_EQ(*vm.sp++, FORTH_TRUE);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
 }
 TEST_F(CoreTests, recurse) {
   forth_reg_input_cb(&vm,[]() -> char {
@@ -342,7 +449,7 @@ TEST_F(CoreTests, swap) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = " 10 20 SWAP";
+    const char* input_string = " 10 20 SWAP \n SWAP";
     return input_string[i++];
         });
   forth_process(&vm);
@@ -350,6 +457,8 @@ TEST_F(CoreTests, swap) {
   EXPECT_EQ(*vm.sp++, 20);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
 }
 TEST_F(CoreTests, sq) {
   forth_reg_input_cb(&vm,[]() -> char {
@@ -399,7 +508,7 @@ TEST_F(CoreTests, emit) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = "10 89 88 EMIT EMIT EMIT";
+    const char* input_string = "10 89 88 EMIT EMIT EMIT \n EMIT";
     return input_string[i++];
         });
   forth_reg_output_cb(&vm,[](char ch) -> void {
@@ -408,6 +517,8 @@ TEST_F(CoreTests, emit) {
   forth_process(&vm);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
 }
 TEST_F(CoreTests, type) {
   forth_reg_input_cb(&vm,[]() -> char {
@@ -418,7 +529,7 @@ TEST_F(CoreTests, type) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = "S\" bebebe\" TYPE CR ";
+    const char* input_string = "S\" bebebe\" TYPE CR \n TYPE \n 17 TYPE";
     return input_string[i++];
         });
   forth_reg_output_cb(&vm,[](char ch) -> void {
@@ -427,6 +538,10 @@ TEST_F(CoreTests, type) {
   forth_process(&vm);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
 }
 TEST_F(CoreTests, formatting) {
   forth_reg_input_cb(&vm,[]() -> char {
@@ -616,3 +731,4 @@ TEST_F(CoreTests, unloop) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 
+}
