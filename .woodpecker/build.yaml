@@ -1,0 +1,10 @@
+steps:
+  - name: run tests
+    image: codeberg.org/ansocket/ubuntu_gcc:latest
+    commands:
+      - cd tests
+      - cmake -S . -B build
+      - cmake --build build
+      - ./build/core
+when:
+  - event: push
