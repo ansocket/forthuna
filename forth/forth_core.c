@@ -1026,14 +1026,22 @@ static void forth_does_runtime(forth_t* vm)
 }
 void forth_does(forth_t* vm)
 {
-    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
-    vm->here += sizeof(ptrdiff_t);
-    *(ptrdiff_t*)vm->here = (ptrdiff_t)vm->here + sizeof(ptrdiff_t)*3;
-    vm->here += sizeof(ptrdiff_t);
-    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_does_runtime;
-    vm->here += sizeof(ptrdiff_t);
-    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_exit;
-    vm->here += sizeof(ptrdiff_t);
+    if(vm->state == FORTH_STATE_INTERPRET)
+    {
+        *(--vm->sp) = (ptrdiff_t)vm->here;
+        forth_does_runtime(vm);
+    }
+    else
+    {
+        *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
+        vm->here += sizeof(ptrdiff_t);
+        *(ptrdiff_t*)vm->here = (ptrdiff_t)vm->here + sizeof(ptrdiff_t)*3;
+        vm->here += sizeof(ptrdiff_t);
+        *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_does_runtime;
+        vm->here += sizeof(ptrdiff_t);
+        *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_exit;
+        vm->here += sizeof(ptrdiff_t);
+    }
     vm->state = FORTH_STATE_COMPILE;
 }
 void forth_comma(forth_t* vm)
@@ -1481,10 +1489,42 @@ void forth_postpone(forth_t* vm)
     vm->here += sizeof(ptrdiff_t);
 }
 
+static void forth_marker_runtime(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    } 
+}
+void forth_marker(forth_t* vm)
+{
+    forth_create(vm);
+    forth_does(vm);
+
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)vm->current->next;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)vm->current;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_here;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_store;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_current;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_store;
+    vm->here += sizeof(ptrdiff_t);
+    forth_semicolon(vm);
+}
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
 FORTH_FUNC_REG(forth_find_unit,0,forth_find,"FIND",&forth_create_unit);
-FORTH_FUNC_REG(forth_does_unit,FORTH_FLAGS_IMMEDIATE,forth_does,"DOES>",&forth_find_unit);
+FORTH_FUNC_REG(forth_does_imm_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_does,"DOES>",&forth_find_unit);
+FORTH_FUNC_REG(forth_does_unit,FORTH_FLAGS_INTERPRET_ONLY,forth_does,"DOES>",&forth_does_imm_unit);
 FORTH_FUNC_REG(forth_align_unit,0,forth_align,"ALIGN",&forth_does_unit);
 FORTH_FUNC_REG(forth_aligned_unit,0,forth_aligned,"ALIGNED",&forth_align_unit);
 FORTH_FUNC_REG(forth_cells_unit,0,forth_cells,"CELLS",&forth_aligned_unit);
@@ -1587,5 +1627,6 @@ FORTH_FUNC_REG(forth_parse_unit,0,forth_parse,"PARSE",&forth_evaluate_unit);
 FORTH_FUNC_REG(forth_parse_name_unit,0,forth_parse_name,"PARSE-NAME",&forth_parse_unit);
 FORTH_FUNC_REG(forth_key_unit,0,forth_key,"KEY",&forth_parse_name_unit);
 FORTH_FUNC_REG(forth_accept_unit,0,forth_accept,"ACCEPT",&forth_key_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_accept_unit);
+FORTH_FUNC_REG(forth_marker_unit,0,forth_marker,"MARKER",&forth_accept_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_marker_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;
