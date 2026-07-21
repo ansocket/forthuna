@@ -103,6 +103,7 @@ int forth_process(forth_t* vm)
         }
         
     }
+    return 0;
 }
 
 int forth_add_function(forth_t* vm, const char* name, forth_function_t func, size_t flags)
@@ -184,4 +185,5 @@ int forth_send_report(forth_t* vm, const char* string)
         }
         vm->output_cb('\n');
     }
+    return 0;
 }

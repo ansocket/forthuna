@@ -29,7 +29,7 @@ FORTH MARKER ACCEPT KEY PARSE-NAME PARSE EVALUATE POSTPONE LITERAL ] [ ( DEPTH W
 ```
 
 ### Memory Usage
-Builded by arm-none-eabi-gcc compiler for arm32 cortex-m3  (commit 5dfb880a9d). Also the lib is required a `forth_t` struct for saving context of the vm so plus to bss 80bytes.
+Builded by arm-none-eabi-gcc compiler for arm32 cortex-m3  (commit 5dfb880a9d). Also the lib is required a `forth_t` struct for saving context of the vm so plus to bss 80bytes.   
 `-O0`
 ```
    text    data     bss     dec     hex filename
