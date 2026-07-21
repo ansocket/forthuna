@@ -843,20 +843,15 @@ void forth_number_sign(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-    ptrdiff_t number1 = *(vm->sp++);
-    ptrdiff_t number2 = *(vm->sp++);
+    cell_double number = (cell_double)*(vm->sp++) << 8UL*sizeof(ptrdiff_t);
+    number |= *(vm->sp++);
+    
     ptrdiff_t res;
-    if(number2 != 0)
+    if(number != 0)
     {
-        res = number2 % vm->base;
-        *(--vm->sp) = number2 / vm->base;
-        *(--vm->sp) = number1;
-    }
-    else
-    {
-        *(--vm->sp) = number2;
-        res = number1 % vm->base;
-        *(--vm->sp) = number1 / vm->base;
+        res = number % vm->base;
+        *(--vm->sp) = (number / vm->base);
+        *(--vm->sp) = (number / vm->base) >> 8*sizeof(ptrdiff_t);
     }
     *(--vm->hld) = digits[abs(res)];
 }
@@ -867,14 +862,12 @@ void forth_number_sign_s(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-    ptrdiff_t number1 = *(vm->sp);
-    ptrdiff_t number2 = *(vm->sp + 1);
+    cell_double number = *(vm->sp + 1) + ((cell_double)*(vm->sp) << 8*sizeof(ptrdiff_t));
     while(1)
     {
         forth_number_sign(vm);
-        number1 = *(vm->sp);
-        number2 = *(vm->sp + 1);
-        if((number1 == 0) && (number2 == 0))
+        number = *(vm->sp + 1) + ((cell_double)*(vm->sp) << 8*sizeof(ptrdiff_t));
+        if(number == 0)
         {
             break;
         }
@@ -1488,15 +1481,6 @@ void forth_postpone(forth_t* vm)
     *(ptrdiff_t**)vm->here = (ptrdiff_t*)*p->cfa;
     vm->here += sizeof(ptrdiff_t);
 }
-
-static void forth_marker_runtime(forth_t* vm)
-{
-    if(forth_check_sp_underflow(vm,2))
-    {
-        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
-        return;
-    } 
-}
 void forth_marker(forth_t* vm)
 {
     forth_create(vm);
@@ -1519,6 +1503,17 @@ void forth_marker(forth_t* vm)
     *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_store;
     vm->here += sizeof(ptrdiff_t);
     forth_semicolon(vm);
+}
+void forth_s_to_d(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    } 
+    cell_double value = *(vm->sp++);
+    *(--vm->sp) = (ptrdiff_t)value;
+    *(--vm->sp) = (ptrdiff_t)(value >> 8*sizeof(ptrdiff_t));
 }
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
@@ -1628,5 +1623,6 @@ FORTH_FUNC_REG(forth_parse_name_unit,0,forth_parse_name,"PARSE-NAME",&forth_pars
 FORTH_FUNC_REG(forth_key_unit,0,forth_key,"KEY",&forth_parse_name_unit);
 FORTH_FUNC_REG(forth_accept_unit,0,forth_accept,"ACCEPT",&forth_key_unit);
 FORTH_FUNC_REG(forth_marker_unit,0,forth_marker,"MARKER",&forth_accept_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_marker_unit);
+FORTH_FUNC_REG(forth_s_to_d_unit,0,forth_s_to_d,"S>D",&forth_marker_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_s_to_d_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;

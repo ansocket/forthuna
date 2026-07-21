@@ -39,6 +39,11 @@ static const forth_unit_t arg_unitname __attribute__((section(".rodata"))) = \
     }                                           \
 }                                              \
 
+#if __SIZEOF_PTRDIFF_T__ == 8
+typedef __int128_t cell_double;
+#elif __SIZEOF_PTRDIFF_T__ == 4
+typedef long long cell_double;
+#endif
 
 typedef struct forth forth_t;
 typedef struct forth_unit forth_unit_t;
