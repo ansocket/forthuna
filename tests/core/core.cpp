@@ -85,7 +85,7 @@ TEST_F(CoreTests, ariph) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = " + \n 1 2 + \n - \n 1 2 - ";
+    const char* input_string = " + \n 1 2 + \n - \n 1 2 - \n * \n 30 40 *";
     return input_string[i++];
         });
   forth_process(&vm);
@@ -98,6 +98,182 @@ TEST_F(CoreTests, ariph) {
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,-1);
   EXPECT_EQ(vm.status,0);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,1200);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, zero_div) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " 10 / \0 0 / \0 DROP 5 /";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_ZERO_DIVISION);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,2);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, rot) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " ROT \n 1 2 3 ROT";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,1);
+  EXPECT_EQ(*vm.sp++,3);
+  EXPECT_EQ(*vm.sp++,2);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, over) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " OVER \n 1 2 OVER";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,1);
+  EXPECT_EQ(*vm.sp++,2);
+  EXPECT_EQ(*vm.sp++,1);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, shifts) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " LSHIFT \n RSHIFT \n 2 4 LSHIFT 155 2 RSHIFT";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,155 >> 2);
+  EXPECT_EQ(*vm.sp++,2 << 4);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, xor) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " XOR \n 10 20 XOR 20 10 XOR";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,20 ^ 10);
+  EXPECT_EQ(*vm.sp++,10 ^ 20);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, mod) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " MOD \n 10 0 MOD \n DROP DROP 10 20 MOD 20 10 MOD 20 3 MOD";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_ZERO_DIVISION);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,20 % 3);
+  EXPECT_EQ(*vm.sp++,20 % 10);
+  EXPECT_EQ(*vm.sp++,10 % 20);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, min_max) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "MIN \n MAX \n 10 20 MIN 20 10 MAX -20 1 MAX -20 30 MIN";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,-20);
+  EXPECT_EQ(*vm.sp++,1);
+  EXPECT_EQ(*vm.sp++,20);
+  EXPECT_EQ(*vm.sp++,10);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, invert_negate_abs) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "INVERT \n NEGATE \n ABS \n 43 INVERT 57 NEGATE -4 NEGATE -4747 ABS 4374 ABS";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,4374);
+  EXPECT_EQ(*vm.sp++,4747);
+  EXPECT_EQ(*vm.sp++,4);
+  EXPECT_EQ(*vm.sp++,-57);
+  EXPECT_EQ(*vm.sp++,~43);
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, colon) {
@@ -395,7 +571,7 @@ TEST_F(CoreTests, logic) {
     // return res;
     static int i = 0; 
     const char* input_string = " 10 15 < 88 105 > 88 33 = 55 27 > 44 44 = TRUE TRUE AND FALSE TRUE OR TRUE FALSE AND FALSE FALSE OR \n \
-                                < \n > \n = \n AND \n OR \n XOR";
+                                < \n > \n = \n AND \n OR";
     return input_string[i++];
         });
   forth_process(&vm);
@@ -410,8 +586,6 @@ TEST_F(CoreTests, logic) {
   EXPECT_EQ(*vm.sp++, FORTH_TRUE);
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
-  forth_process(&vm);
-  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
   forth_process(&vm);

@@ -404,9 +404,9 @@ void forth_min(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-    ptrdiff_t val1 = *(vm->sp);
-    ptrdiff_t val2 = *(vm->sp);
-    *(++vm->sp) = (val1 > val2) ? val1 : val2; 
+    ptrdiff_t val1 = *(vm->sp++);
+    ptrdiff_t val2 = *(vm->sp++);
+    *(--vm->sp) = (val1 < val2) ? val1 : val2; 
 }
 void forth_max(forth_t* vm)
 {
@@ -415,9 +415,9 @@ void forth_max(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-    ptrdiff_t val1 = *(vm->sp);
-    ptrdiff_t val2 = *(vm->sp);
-    *(++vm->sp) = (val1 < val2) ? val1 : val2; 
+    ptrdiff_t val1 = *(vm->sp++);
+    ptrdiff_t val2 = *(vm->sp++);
+    *(--vm->sp) = (val1 > val2) ? val1 : val2; 
 }
 void forth_invert(forth_t* vm)
 {

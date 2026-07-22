@@ -58,7 +58,8 @@ int forth_process(forth_t* vm)
     {
         if(vm->status & FORTH_STATUS_NOTFOUND)
         {
-            *(--vm->sp) = strlen((char*)*vm->sp);
+            *(vm->sp - 1) = strlen((char*)*vm->sp);
+            vm->sp--;
             forth_type(vm);
             forth_send_report(vm," IS NOTFOUND");
         }
