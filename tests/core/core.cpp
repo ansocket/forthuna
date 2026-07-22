@@ -276,6 +276,44 @@ TEST_F(CoreTests, invert_negate_abs) {
   EXPECT_EQ(*vm.sp++,~43);
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
+TEST_F(CoreTests, constant) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "CONSTANT \n 10 CONSTANT \n CONSTANT jojo jojo";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_INPUT_ERROR);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,10);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, variable) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "VARIABLE \n VARIABLE jojo 20 jojo ! jojo @";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_INPUT_ERROR);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,20);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
 TEST_F(CoreTests, colon) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
@@ -509,10 +547,30 @@ TEST_F(CoreTests, do_plus_loop) {
     return input_string[i++];
         });
   forth_process(&vm);
-  EXPECT_EQ(*vm.sp++, -1);
+  EXPECT_EQ(*vm.sp++,-1);
   EXPECT_EQ(*vm.sp++, 0);
   EXPECT_EQ(*vm.sp++, 1);
   EXPECT_EQ(*vm.sp++, 2);
+
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, do_plus_loop1) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ": GD3 DO I 2 +LOOP ; 6 2 GD3";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 4);
+  EXPECT_EQ(*vm.sp++, 2);
+
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
 }

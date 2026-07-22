@@ -998,6 +998,7 @@ void forth_create(forth_t* vm)
     unsigned int token_len = *(vm->sp++);
     if(token_len == 0)
     {
+        vm->sp++;
         vm->status |= FORTH_STATUS_INPUT_ERROR;
         return;
     }
@@ -1179,8 +1180,8 @@ static void forth_do_start_runtime(forth_t* vm)
     {
         vm->j = *(vm->rsp + 1);
     }
-    *(--vm->rsp) = *(vm->sp + 1);
-    *(--vm->rsp) = *(vm->sp);
+    *(--vm->rsp) = *(vm->sp + 1); /* max */
+    *(--vm->rsp) = *(vm->sp); /* start */
     
     vm->i = *(vm->sp);
     vm->sp += 2;
@@ -1236,40 +1237,31 @@ void forth_loop(forth_t* vm)
 }
 static void forth_plus_loop_runtime(forth_t* vm)
 {
-    if(forth_check_sp_underflow(vm,2))
+    if(forth_check_sp_underflow(vm,1))
     {
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     } 
     ptrdiff_t step = *(vm->sp++);
+    char sign_of_step = (step < 0);
     
-    if(step < 0)
+    ptrdiff_t *counter = (vm->rsp + 1);
+    ptrdiff_t *limit = (vm->rsp + 2);
+    vm->i += step; 
+    *counter = vm->i;
+    if(((*counter >= *limit) && (sign_of_step)) || ((*counter < *limit) && (sign_of_step == 0)))
     {
-        if(*(vm->rsp + 1) > *(vm->rsp + 2))
-        {
-            *(vm->rsp + 1) += step;
-            vm->i = *(vm->rsp + 1);
-            vm->pc = (ptrdiff_t*)*(vm->rsp++);
-            return;
-        }
-    }
-    else
-    {
-        if(*(vm->rsp + 1) < *(vm->rsp + 2))
-        {
-            *(vm->rsp + 1) += step;
-            vm->i = *(vm->rsp + 1);
-            vm->pc = (ptrdiff_t*)*(vm->rsp++);
-            return;
-        }
+        vm->pc = (ptrdiff_t*)*(vm->rsp++);
+        return;
     }
     vm->pc = (ptrdiff_t*)*(vm->rsp++) - 3;
-    vm->rsp += 2;
     vm->i = vm->j;
     if((vm->rsp + 1) < vm->rsp_start)
     {
         vm->j = *(vm->rsp + 1);
     }
+    vm->rsp += 2;
+
 }
 void forth_plus_loop(forth_t* vm)
 {
@@ -1407,6 +1399,7 @@ void forth_constant(forth_t* vm)
         return;
     } 
     forth_create(vm);
+    if(vm->status != 0) return;
     forth_unit_t* unit = vm->current;
     ptrdiff_t* data_ptr = unit->cfa;
     data_ptr[1] = *(vm->sp++);
@@ -1415,6 +1408,7 @@ void forth_constant(forth_t* vm)
 void forth_variable(forth_t* vm)
 {
     forth_create(vm);
+    if(vm->status != 0) return;
     *(--vm->sp) = 0;
     forth_comma(vm);
 }
