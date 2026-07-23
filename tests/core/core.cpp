@@ -1092,4 +1092,46 @@ TEST_F(CoreTests, accept) {
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
+TEST_F(CoreTests, base) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "HEX BASE @ FF DECIMAL BASE @ 53";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 53);
+  EXPECT_EQ(*vm.sp++, 10);
+  EXPECT_EQ(*vm.sp++, 255);
+  EXPECT_EQ(*vm.sp++, 16);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, depth) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "DEPTH 1 2 3 DEPTH";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  
+  EXPECT_EQ(*vm.sp++, 4);
+  EXPECT_EQ(*vm.sp++, 3);
+  EXPECT_EQ(*vm.sp++, 2);
+  EXPECT_EQ(*vm.sp++, 1);
+  EXPECT_EQ(*vm.sp++, 0);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
 }
