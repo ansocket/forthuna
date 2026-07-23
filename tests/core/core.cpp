@@ -49,9 +49,11 @@ TEST_F(CoreTests, numbers) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = "1 2";
+    const char* input_string = "DROP \n 1 2";
     return input_string[i++];
         });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,2);
   EXPECT_EQ(*vm.sp++,1);
@@ -902,12 +904,11 @@ TEST_F(CoreTests, literal) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = ": lit_test 1 [ 2 3 + ] LITERAL + ; lit_test";
+    const char* input_string = ": wrong 1 [ ] LITERAL + ; \n : lit_test 1 [ 2 3 + ] LITERAL + ; lit_test";
     return input_string[i++];
         });
-  forth_reg_output_cb(&vm,[](char ch) -> void {
-    std::putchar(ch);
-  });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 6);
   EXPECT_EQ(vm.status,0);
@@ -923,12 +924,15 @@ TEST_F(CoreTests, postpone) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = ": ENDIF POSTPONE THEN ; IMMEDIATE 99 FALSE : TEST IF 1 2 + ENDIF ; TEST";
+    const char* input_string = "POSTPONE \n : bebe POSTPONE \n POSTPONE keke \n ; : ENDIF POSTPONE THEN ; IMMEDIATE 99 FALSE : TEST IF 1 2 + ENDIF ; TEST";
     return input_string[i++];
         });
-  forth_reg_output_cb(&vm,[](char ch) -> void {
-    std::putchar(ch);
-  });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_NOTFOUND);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_INPUT_ERROR);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_NOTFOUND);
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 99);
   EXPECT_EQ(vm.status,0);
@@ -962,5 +966,130 @@ TEST_F(CoreTests, unloop) {
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
-
+TEST_F(CoreTests, marker) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " HERE @ CURRENT @ MARKER M1 : JUNK1 1 2 + ; : JUNK2 4 2 4 3 ; M1 HERE @ CURRENT @";
+    return input_string[i++];
+        });
+  forth_reg_output_cb(&vm,[](char ch) -> void {
+    std::putchar(ch);
+  });
+  forth_process(&vm);
+  ptrdiff_t current2 = *vm.sp++;
+  ptrdiff_t here2 = *vm.sp++;
+  EXPECT_EQ(*vm.sp++, current2);
+  EXPECT_EQ(*vm.sp++, here2);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, s_to_d) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " S>D \n 100 S>D  ";
+    return input_string[i++];
+        });
+  forth_reg_output_cb(&vm,[](char ch) -> void {
+    std::putchar(ch);
+  });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 0);
+  EXPECT_EQ(*vm.sp++, 100);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, two_store_fetch) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "  2! \n 2@ \n VARIABLE TEST_2SF 100 S>D TEST_2SF 2! TEST_2SF 2@";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 0);
+  EXPECT_EQ(*vm.sp++, 100);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, two_dup_swap_over) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = " 2SWAP \n 2DUP \n 2OVER \n 2DROP \n 1 2 3 4 2SWAP 5 6 2DUP 1 2 3 4 2OVER 3 2 2DROP";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 2);
+  EXPECT_EQ(*vm.sp++, 1);
+  EXPECT_EQ(*vm.sp++, 4);
+  EXPECT_EQ(*vm.sp++, 3);
+  EXPECT_EQ(*vm.sp++, 2);
+  EXPECT_EQ(*vm.sp++, 1);
+  EXPECT_EQ(*vm.sp++, 6);
+  EXPECT_EQ(*vm.sp++, 5);
+  EXPECT_EQ(*vm.sp++, 6);
+  EXPECT_EQ(*vm.sp++, 5);
+  EXPECT_EQ(*vm.sp++, 2);
+  EXPECT_EQ(*vm.sp++, 1);
+  EXPECT_EQ(*vm.sp++, 4);
+  EXPECT_EQ(*vm.sp++, 3);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
+TEST_F(CoreTests, accept) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "ACCEPT \n VARIABLE TEST_ACCEPT 10 ALLOT TEST_ACCEPT 10 ACCEPT \n12345\0 TEST_ACCEPT + 0 SWAP C! TEST_ACCEPT";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  forth_process(&vm);
+  EXPECT_STREQ((char*)*vm.sp++, "12345");
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
 }

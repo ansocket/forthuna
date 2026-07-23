@@ -1502,7 +1502,6 @@ void forth_marker(forth_t* vm)
 {
     forth_create(vm);
     forth_does(vm);
-
     *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
     vm->here += sizeof(ptrdiff_t);
     *(ptrdiff_t*)vm->here = (ptrdiff_t)vm->current->next;
@@ -1518,6 +1517,8 @@ void forth_marker(forth_t* vm)
     *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_current;
     vm->here += sizeof(ptrdiff_t);
     *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_store;
+    vm->here += sizeof(ptrdiff_t);
+    *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_drop;
     vm->here += sizeof(ptrdiff_t);
     forth_semicolon(vm);
 }
