@@ -45,6 +45,11 @@ typedef __int128_t cell_double;
 typedef long long cell_double;
 #endif
 
+#if __SIZEOF_PTRDIFF_T__ == 8
+typedef __uint128_t unsigned_cell_double;
+#elif __SIZEOF_PTRDIFF_T__ == 4
+typedef unsigned long long unsigned_cell_double;
+#endif
 typedef struct forth forth_t;
 typedef struct forth_unit forth_unit_t;
 typedef char (*forth_input_t)();

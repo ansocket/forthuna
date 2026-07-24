@@ -185,20 +185,27 @@ void forth_evaluate(forth_t* vm)
         else
         {
             char* end;
-            long int result = strtol((const char*)*(vm->sp), &end, vm->base);
+            char* token = (const char*)*(vm->sp);
+            char sign = 0;
+            if(token[0] == '-')
+            {
+                token++;
+                sign = 1;
+            }
+            size_t result = strtoul(token, &end, vm->base); /* TODO: replace no libc */
             
             if(*end == 0)
             {
                 forth_drop(vm);
                 if(vm->state == FORTH_STATE_INTERPRET)
                 {
-                    *(--vm->sp) = result;
+                    *(--vm->sp) = (ptrdiff_t)((sign) ? (__SIZE_MAX__ - result + 1) : result);
                 }
                 else
                 {
                     *((ptrdiff_t*)vm->here) = (ptrdiff_t)forth_push;
                     vm->here += sizeof(ptrdiff_t);
-                    *((ptrdiff_t*)vm->here) = result;
+                    *((ptrdiff_t*)vm->here) = (ptrdiff_t)((sign) ? (__SIZE_MAX__ - result + 1) : result);
                     vm->here += sizeof(ptrdiff_t);
                 }
                 
@@ -859,13 +866,12 @@ void forth_number_sign(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-    cell_double number = (cell_double)*(vm->sp++) << 8UL*sizeof(ptrdiff_t);
-    number |= *(vm->sp++);
-    
-    ptrdiff_t res = 0;
+    unsigned_cell_double number = (size_t)*(vm->sp + 1) + ((unsigned_cell_double)*(vm->sp) << 8*sizeof(size_t));
+    vm->sp += 2;
+    size_t res = 0;
     res = number % vm->base;
     *(--vm->sp) = (number / vm->base);
-    *(--vm->sp) = (number / vm->base) >> 8*sizeof(ptrdiff_t);
+    *(--vm->sp) = (number / vm->base) >> 8*sizeof(size_t);
     *(--vm->hld) = digits[abs(res)];
 }
 void forth_number_sign_s(forth_t* vm)
@@ -875,11 +881,11 @@ void forth_number_sign_s(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-    cell_double number = *(vm->sp + 1) + ((cell_double)*(vm->sp) << 8*sizeof(ptrdiff_t));
+    unsigned_cell_double number = (size_t)*(vm->sp + 1) + ((unsigned_cell_double)*(vm->sp) << 8*sizeof(size_t));
     while(1)
     {
         forth_number_sign(vm);
-        number = *(vm->sp + 1) + ((cell_double)*(vm->sp) << 8*sizeof(ptrdiff_t));
+        number = *(vm->sp + 1) + (((unsigned_cell_double)*(vm->sp)) << 8*sizeof(size_t));
         if(number == 0)
         {
             break;
@@ -920,6 +926,10 @@ void forth_dot(forth_t* vm)
     }
     forth_less_number_sign(vm);
     char sign = *(vm->sp) < 0;
+    if(sign)
+    {
+        *(vm->sp) = __SIZE_MAX__ - *(vm->sp) + 1;
+    }
     *(--vm->sp) = 0;
     forth_number_sign_s(vm);
     if(sign)
@@ -1608,6 +1618,20 @@ void forth_r_fetch(forth_t* vm)
 {
     *(--vm->sp) = *(vm->rsp);
 }
+void forth_u_dot(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    forth_less_number_sign(vm);
+    *(--vm->sp) = 0;
+    forth_number_sign_s(vm);
+    forth_number_sign_greater(vm);
+    forth_type(vm);
+    forth_space(vm);
+}
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
 FORTH_FUNC_REG(forth_find_unit,0,forth_find,"FIND",&forth_create_unit);
@@ -1727,5 +1751,6 @@ FORTH_FUNC_REG(forth_two_swap_unit,0,forth_two_swap,"2SWAP",&forth_two_dup_unit)
 FORTH_FUNC_REG(forth_r_from_unit,0,forth_r_from,"R>",&forth_two_swap_unit);
 FORTH_FUNC_REG(forth_r_to_unit,0,forth_r_to,">R",&forth_r_from_unit);
 FORTH_FUNC_REG(forth_r_fetch_unit,0,forth_r_fetch,"R@",&forth_r_to_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_r_fetch_unit);
+FORTH_FUNC_REG(forth_u_dot_unit,0,forth_u_dot,"U.",&forth_r_fetch_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_u_dot_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;
