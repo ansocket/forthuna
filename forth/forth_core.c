@@ -14,17 +14,6 @@ char forth_check_sp_underflow(forth_t* vm, unsigned int num)
         return 0;
     }
 }
-char forth_check_rsp_underflow(forth_t* vm, unsigned int num)
-{
-    if(vm->rsp + num > vm->rsp_start)
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
-}
 void forth_rpush(forth_t * vm)
 {
     if(forth_check_sp_underflow(vm,1))
@@ -1602,6 +1591,23 @@ void forth_two_over(forth_t* vm)
     *(vm->sp - 2) = *(vm->sp + 2);
     vm->sp -= 2;
 }
+void forth_r_from(forth_t* vm)
+{
+    *(--vm->sp) = *(vm->rsp++);
+}
+void forth_r_to(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    } 
+    *(--vm->rsp) = *(vm->sp++);
+}
+void forth_r_fetch(forth_t* vm)
+{
+    *(--vm->sp) = *(vm->rsp);
+}
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
 FORTH_FUNC_REG(forth_find_unit,0,forth_find,"FIND",&forth_create_unit);
@@ -1718,5 +1724,8 @@ FORTH_FUNC_REG(forth_two_drop_unit,0,forth_two_drop,"2DROP",&forth_two_fetch_uni
 FORTH_FUNC_REG(forth_two_over_unit,0,forth_two_over,"2OVER",&forth_two_drop_unit);
 FORTH_FUNC_REG(forth_two_dup_unit,0,forth_two_dup,"2DUP",&forth_two_over_unit);
 FORTH_FUNC_REG(forth_two_swap_unit,0,forth_two_swap,"2SWAP",&forth_two_dup_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_two_swap_unit);
+FORTH_FUNC_REG(forth_r_from_unit,0,forth_r_from,"R>",&forth_two_swap_unit);
+FORTH_FUNC_REG(forth_r_to_unit,0,forth_r_to,">R",&forth_r_from_unit);
+FORTH_FUNC_REG(forth_r_fetch_unit,0,forth_r_fetch,"R@",&forth_r_to_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_r_fetch_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;

@@ -1366,4 +1366,24 @@ TEST_F(CoreTests, move_test) {
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
+TEST_F(CoreTests, r_move_fetch) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ">R \n 10 >R R@ R>";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, 10);
+  EXPECT_EQ(*vm.sp++, 10);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
 }
