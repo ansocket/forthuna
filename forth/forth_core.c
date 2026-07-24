@@ -650,6 +650,7 @@ void forth_сhar(forth_t* vm)
         return;
     }
     char* token = (char*)*(vm->sp++);
+    forth_drop(vm);
     *(--vm->sp) = (ptrdiff_t)token[0];
 }
 void forth_bracket_сhar(forth_t* vm)
@@ -661,6 +662,7 @@ void forth_bracket_сhar(forth_t* vm)
         return;
     }
     char* token = (char*)*(vm->sp++);
+    forth_drop(vm);
     *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
     vm->here += sizeof(ptrdiff_t);
     *(ptrdiff_t*)vm->here = (ptrdiff_t)token[0];
