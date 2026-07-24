@@ -185,7 +185,7 @@ void forth_evaluate(forth_t* vm)
         else
         {
             char* end;
-            char* token = (const char*)*(vm->sp);
+            char* token = (char*)*(vm->sp);
             char sign = 0;
             if(token[0] == '-')
             {
@@ -1632,6 +1632,16 @@ void forth_u_dot(forth_t* vm)
     forth_type(vm);
     forth_space(vm);
 }
+void forth_u_less(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,2))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    *(vm->sp + 1) = ((size_t)*(vm->sp + 1) < (size_t)*(vm->sp)) ? FORTH_TRUE : FORTH_FALSE;
+    vm->sp++; 
+}
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
 FORTH_FUNC_REG(forth_find_unit,0,forth_find,"FIND",&forth_create_unit);
@@ -1752,5 +1762,6 @@ FORTH_FUNC_REG(forth_r_from_unit,0,forth_r_from,"R>",&forth_two_swap_unit);
 FORTH_FUNC_REG(forth_r_to_unit,0,forth_r_to,">R",&forth_r_from_unit);
 FORTH_FUNC_REG(forth_r_fetch_unit,0,forth_r_fetch,"R@",&forth_r_to_unit);
 FORTH_FUNC_REG(forth_u_dot_unit,0,forth_u_dot,"U.",&forth_r_fetch_unit);
-FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_u_dot_unit);
+FORTH_FUNC_REG(forth_u_less_unit,0,forth_u_less,"U<",&forth_u_dot_unit);
+FORTH_FUNC_REG(forth_unit,0,forth_exit,"FORTH",&forth_u_less_unit);
 const forth_unit_t* FORTH_ADDR = &forth_unit;

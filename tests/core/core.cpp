@@ -1386,4 +1386,25 @@ TEST_F(CoreTests, r_move_fetch) {
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
+TEST_F(CoreTests, u_less_test) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = "U< \n -10 2368678 U< 329749832 93829 U< -1214 -18 U<";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++, FORTH_TRUE);
+  EXPECT_EQ(*vm.sp++, FORTH_FALSE);
+  EXPECT_EQ(*vm.sp++, FORTH_FALSE);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
 }
