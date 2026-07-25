@@ -14,7 +14,6 @@ int forth_init(forth_t* vm, forth_init_t* init_desc)
     vm->rsp = vm->rsp_start;
     vm->here = (char*)vm->memory + init_desc->tib_bytes;
     vm->current = (forth_unit_t*)FORTH_ADDR;
-    vm->context = (forth_unit_t*)FORTH_ADDR;
     vm->tib = (char*)vm->memory;
     vm->in = 0;
     vm->status = 0;
@@ -186,5 +185,16 @@ int forth_send_report(forth_t* vm, const char* string)
         }
         vm->output_cb('\n');
     }
+    return 0;
+}
+void forth_exit(forth_t* vm)
+{
+    vm->status |= FORTH_STATUS_EXECUTE_EXIT;
+    vm->pc = (ptrdiff_t*)*(vm->rsp++);
+}
+int forth_add_dictionary(forth_t* vm, const forth_unit_t* start, forth_unit_t* bridge)
+{
+    bridge->next = vm->current;
+    vm->current = (forth_unit_t*)start;
     return 0;
 }

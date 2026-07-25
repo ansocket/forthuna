@@ -1,0 +1,2 @@
+add_executable(custom_set_tests custom_set_tests.cpp)
+target_link_libraries(custom_set_tests PRIVATE gtest gtest_main forthuna custom_set)

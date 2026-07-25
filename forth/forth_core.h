@@ -6,7 +6,6 @@ extern "C"{
 
 #include "forth.h"
 
-void forth_exit(forth_t* vm);
 void forth_create(forth_t* vm);
 void forth_align(forth_t* vm);
 void forth_variable_cmd(forth_t* vm);

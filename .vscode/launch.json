@@ -47,7 +47,7 @@
             "name": "Core tests",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/tests/build/core",
+            "program": "${workspaceFolder}/build_tests/tests/core/core",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",

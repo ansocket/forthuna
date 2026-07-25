@@ -1,14 +1,6 @@
-cmake_minimum_required(VERSION 3.31)
-
-project(tests C CXX)
-
-add_compile_options(--coverage -O0)
-add_link_options(--coverage)
-
-add_compile_options(-g3 )
-add_library(forth OBJECT ../forth/forth.c ../forth/forth_core.c)
-target_include_directories(forth PUBLIC ../forth)
+target_compile_options(forthuna PUBLIC --coverage)
+target_link_options(forthuna PUBLIC --coverage)
 
 
-add_executable(core core/core.cpp)
-target_link_libraries(core PRIVATE gtest gtest_main forth)
+add_subdirectory(core)
+add_subdirectory(custom_set)

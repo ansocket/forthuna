@@ -18,7 +18,7 @@ Yep, there is. Main idea is to using Forth REPL as a CLI interface for embedded 
 It's a combination of words *Forth* (obviously) and the name of the Ancient Rome's goddess of luck and fate - *Fortūna*. I think, good luck - is a necessary requirement for memory management in Forth ^^ 
 
 ### Building
-REPL: `cmake -S . -B build -DEXAMPLE_REPL=ON && cmake --build build`
+REPL: `./scripts/build_examples.sh`
 ### Using
 ```
 Forthuna REPL. Enjoy!
@@ -27,7 +27,9 @@ Hello world! OK
 WORDS
 FORTH MARKER ACCEPT KEY PARSE-NAME PARSE EVALUATE POSTPONE LITERAL ] [ ( DEPTH WORDS VARIABLE CONSTANT RECURSE REPEAT WHILE UNTIL BEGIN J I UNLOOP LEAVE +LOOP LOOP DO ELSE THEN IF IMMEDIATE HEX DECIMAL BASE CURRENT . SIGN #> #S # <# HLD PAD HERE FALSE TRUE TYPE BL SPACE CR EMIT ." ." S" S" CHARS CHAR+ [CHAR] CHAR C, C! C@ +! @ ! ; : 1- 1+ 0= 0< OR AND = > < SWAP DROP ?DUP DUP ABS NEGATE INVERT MAX MIN / MOD RSHIFT LSHIFT OVER XOR * - + EXECUTE ' , MOVE ALLOT CELL+ CELLS ALIGNED ALIGN DOES> DOES> FIND CREATE EXIT  OK
 ```
-
+### Creating custom word sets
+Forth language provides to adding custom sets of words to extend functionality of your application. I suggest you to create custom sets to hardware-depended words instead creating new words in "core" set. Adding new sets are pretty straightforward (examples/custom_set). Feel free to make MR with support your hardware! It's not mandatory (MIT License) but I will be very happy ^^
+ 
 ### Memory Usage
 Builded by arm-none-eabi-gcc compiler for arm32 cortex-m3  (commit 5dfb880a9d). Also the lib is required a `forth_t` struct for saving context of the vm so plus to bss 80bytes.   
 `-O0`

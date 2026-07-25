@@ -31,13 +31,26 @@ static const forth_unit_t arg_unitname = \
 {                                               \
     .flags = arg_flags,                             \
     .name = arg_name,                                \
+    .next = (forth_unit_t*)arg_next,                               \
+    .cfa = (ptrdiff_t*)arg_unitname.data,                    \
+    .data = {                                   \
+        arg_func,                      \
+        forth_exit                              \
+    }                                           \
+} 
+                                             
+#define FORTH_FUNC_RAM_REG(arg_unitname, arg_flags, arg_func, arg_name, arg_next) \
+static forth_unit_t arg_unitname = \
+{                                               \
+    .flags = arg_flags,                             \
+    .name = arg_name,                                \
     .next = arg_next,                               \
     .cfa = (ptrdiff_t*)arg_unitname.data,                    \
     .data = {                                   \
         arg_func,                      \
         forth_exit                              \
     }                                           \
-}                                              \
+}
 
 #if __SIZEOF_PTRDIFF_T__ == 8
 typedef __int128_t cell_double;
@@ -60,7 +73,7 @@ typedef struct forth_unit
 {
     size_t flags;
     const char* name;
-    const struct forth_unit* next;
+    struct forth_unit* next;
     ptrdiff_t* cfa;
     void* data[];
 }forth_unit_t;
@@ -95,7 +108,6 @@ typedef struct forth
     ptrdiff_t* pc;
     char* here;
     forth_unit_t* current;
-    forth_unit_t* context;
     char* tib;
     unsigned int in;
     int status;
@@ -107,6 +119,7 @@ typedef struct forth
     char* hld;
 }forth_t;
 
+void forth_exit(forth_t* vm);
 int forth_init(forth_t* vm, forth_init_t* init_desc);
 int forth_process(forth_t* vm);  
 int forth_add_function(forth_t* vm, const char* name, forth_function_t func, size_t flags);
@@ -116,6 +129,8 @@ int forth_add_constant(forth_t* vm, const char* name, ptrdiff_t value);
 int forth_reg_output_cb(forth_t* vm, forth_output_t cb);
 int forth_reg_input_cb(forth_t* vm, forth_input_t cb);
 int forth_send_report(forth_t* vm, const char* string);
+int forth_add_dictionary(forth_t* vm, const forth_unit_t* start, forth_unit_t* bridge);
+
 #ifdef __cplusplus
 }
 #endif

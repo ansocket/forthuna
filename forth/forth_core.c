@@ -72,11 +72,7 @@ void forth_variable_cmd(forth_t* vm)
 {
     *(--vm->sp) = (ptrdiff_t)(vm->pc + 1);
 }
-void forth_exit(forth_t* vm)
-{
-    vm->status |= FORTH_STATUS_EXECUTE_EXIT;
-    vm->pc = (ptrdiff_t*)*(vm->rsp++);
-} 
+ 
 void forth_exit_compile(forth_t* vm)
 {
     *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_exit;
