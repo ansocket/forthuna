@@ -9,7 +9,6 @@ elif(CMAKE_BUILD_TYPE EQUAL "Release")
 endif()
 
 add_subdirectory(forth)
-add_subdirectory(sets)
 
 if(BUILD_EXAMPLES)
     add_subdirectory(examples)

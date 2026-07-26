@@ -1,4 +1,2 @@
-if(SETS_CUSTOM_SET)
-    add_subdirectory(custom_set)
-endif()
+add_subdirectory(custom_set)
 add_subdirectory(repl)
