@@ -258,7 +258,7 @@ void forth_key(forth_t* vm)
         vm->status |= FORTH_STATUS_INPUT_ERROR;
         return;
     }
-    *(--vm->sp) = vm->input_cb(vm);
+    *(--vm->sp) = vm->input_cb();
 }
 void forth_accept(forth_t* vm)
 {
@@ -695,7 +695,7 @@ void forth_squote(forth_t* vm)
     vm->in++;
     unsigned int token_len = *(vm->sp++);
     char* token = (char*)*(vm->sp++);
-    ptrdiff_t** jmp_addr;
+    ptrdiff_t** jmp_addr = NULL;
     if(vm->state == FORTH_STATE_COMPILE)
     {
         *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
@@ -735,7 +735,7 @@ void forth_dot_quote(forth_t* vm)
     vm->in++;
     unsigned int token_len = *(vm->sp++);
     char* token = (char*)*(vm->sp++);
-    ptrdiff_t** jmp_addr;
+    ptrdiff_t** jmp_addr = NULL;
     if(vm->state == FORTH_STATE_COMPILE)
     {
         *(ptrdiff_t*)vm->here = (ptrdiff_t)forth_push;
@@ -868,7 +868,7 @@ void forth_number_sign(forth_t* vm)
     res = number % vm->base;
     *(--vm->sp) = (number / vm->base);
     *(--vm->sp) = (number / vm->base) >> 8*sizeof(size_t);
-    *(--vm->hld) = digits[abs(res)];
+    *(--vm->hld) = digits[res];
 }
 void forth_number_sign_s(forth_t* vm)
 {
