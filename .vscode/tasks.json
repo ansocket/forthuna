@@ -19,7 +19,8 @@
             "label": "Run REPL",
             "type": "shell",
             "command": "./build/examples/repl/repl",
-            "problemMatcher": []
+            "problemMatcher": [],
+            "dependsOn":"Build examples"
         }
     ]
 }

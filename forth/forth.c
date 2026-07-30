@@ -42,7 +42,28 @@ int forth_process(forth_t* vm)
         ch = *(vm->sp++);
         if(vm->local_echo && vm->output_cb)
         {
-            vm->output_cb(ch);
+            if(ch == '\0') 
+            {
+                vm->output_cb('\n');
+            }
+            else
+            {
+                vm->output_cb(ch);
+            }
+        }
+        if(ch == '\x7F')
+        {
+            if(ch_counter > 0)
+            {
+                ch_counter--;
+            }
+            if(vm->local_echo && vm->output_cb)
+            {
+                vm->output_cb('\b');
+                vm->output_cb(' ');
+                vm->output_cb('\b');
+                continue;
+            }
         }
         if(ch == '\n')
         {

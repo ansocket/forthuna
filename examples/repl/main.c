@@ -1,6 +1,25 @@
 #include "stdio.h"
 #include "forth.h"
 
+#include "termios.h"
+
+static struct termios stored_settings;
+
+void setup_terminal(void)
+{
+	struct termios new_settings;
+
+	tcgetattr(0,&stored_settings);
+
+	new_settings = stored_settings;
+
+	new_settings.c_lflag &= (~ICANON & ~ECHO);
+	new_settings.c_cc[VTIME] = 0;
+	new_settings.c_cc[VMIN] = 1;
+
+	tcsetattr(0,TCSANOW,&new_settings);
+	return;
+}
 char memory[4096];
 forth_t vm;
 
@@ -19,13 +38,15 @@ static void output_cb(char ch)
 }
 int main(int argc, char** argv)
 {
+    setup_terminal();
     forth_init_t init_desc = 
     {
         .full_memory = (ptrdiff_t*)memory,
         .full_memory_cells = 4096/sizeof(ptrdiff_t),
         .sp_cells = 32, 
         .rsp_cells = 32,
-        .tib_bytes = 1024
+        .tib_bytes = 1024,
+        .local_echo = 1
     };
     forth_init(&vm,&init_desc);
     forth_reg_input_cb(&vm,input_cb);
