@@ -121,7 +121,7 @@ void forth_execute(forth_t* vm)
     }
     *(--vm->rsp) = (ptrdiff_t)vm->pc;
     vm->pc = (ptrdiff_t*)*(vm->sp++);
-    while(!(vm->status & FORTH_STATUS_EXECUTE_EXIT))
+    while(vm->status == 0)
     {
         forth_function_t func = *(forth_function_t*)(vm->pc++);
         if(func != NULL)
@@ -209,11 +209,10 @@ void forth_evaluate(forth_t* vm)
             else
             {
                 vm->status |= FORTH_STATUS_NOTFOUND;
-                break;
             }
         }
 
-    } while (1);
+    } while (vm->status == 0);
     vm->source = (char*)*(vm->rsp++);
     vm->in = *(vm->rsp++);
 }
@@ -1146,11 +1145,6 @@ void forth_then(forth_t* vm)
 }
 static void forth_else_runtime(forth_t* vm)
 {
-    if(forth_check_sp_underflow(vm,1))
-    {
-        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
-        return;
-    } 
     vm->pc = (ptrdiff_t*)*(vm->pc);
 }
 void forth_else(forth_t* vm)

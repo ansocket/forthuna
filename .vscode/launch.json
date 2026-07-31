@@ -15,7 +15,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            "preLaunchTask": "Build REPL",
+            "preLaunchTask": "Build examples",
             "targetArchitecture": "x64",
             "setupCommands": [
                 {
@@ -77,7 +77,7 @@
                 },
                 {
                     "description": "Specify exec file",
-                    "text": "-file-exec-and-symbols ${workspaceFolder}/tests/build/core",
+                    "text": "-file-exec-and-symbols ${workspaceFolder}/build_tests/tests/core/core",
                     "ignoreFailures": true
                 }
             ],

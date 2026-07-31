@@ -491,6 +491,26 @@ TEST_F(CoreTests, if_then_else) {
   EXPECT_EQ(vm.status,0);
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
+TEST_F(CoreTests, if_then_nested) {
+  forth_reg_input_cb(&vm,[]() -> char {
+    // char res =  getchar();
+    // if(res == '\n') 
+    // {
+    //   res = '\0';
+    // }
+    // return res;
+    static int i = 0; 
+    const char* input_string = ": IF_NESTED IF IF 10 ELSE 20 THEN ELSE IF 30 ELSE 40 THEN THEN ; FALSE FALSE IF_NESTED TRUE FALSE IF_NESTED FALSE TRUE IF_NESTED TRUE TRUE IF_NESTED";
+    return input_string[i++];
+        });
+  forth_process(&vm);
+  EXPECT_EQ(*vm.sp++,10);
+  EXPECT_EQ(*vm.sp++,20);
+  EXPECT_EQ(*vm.sp++,30);
+  EXPECT_EQ(*vm.sp++,40);
+  EXPECT_EQ(vm.status,0);
+  EXPECT_EQ(vm.sp,vm.sp_start);
+}
 TEST_F(CoreTests, do_loop) {
   forth_reg_input_cb(&vm,[]() -> char {
     // char res =  getchar();
@@ -911,7 +931,7 @@ TEST_F(CoreTests, literal) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = ": wrong 1 [ ] LITERAL + ; \n : lit_test 1 [ 2 3 + ] LITERAL + ; lit_test";
+    const char* input_string = ": wrong 1 [ ] LITERAL \n ; : lit_test 1 [ 2 3 + ] LITERAL + ; lit_test";
     return input_string[i++];
         });
   forth_process(&vm);

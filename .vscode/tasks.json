@@ -10,6 +10,12 @@
             "problemMatcher": []
         },
         {
+            "label": "Build tests",
+            "type": "shell",
+            "command": "cd scripts && ./build_tests.sh",
+            "problemMatcher": []
+        },
+        {
             "label": "Build examples",
             "type": "shell",
             "command": "cd scripts && ./build_examples.sh",
