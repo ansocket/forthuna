@@ -17,6 +17,10 @@ void forth_type(forth_t* vm);
 void forth_find(forth_t* vm);
 void forth_parse_name(forth_t* vm);
 void forth_key(forth_t* vm);
+void forth_cmove(forth_t* vm);
+void forth_compare(forth_t* vm);
+void forth_count(forth_t* vm);
+void forth_dup(forth_t* vm);
 #ifdef __cplusplus
 }
 #endif

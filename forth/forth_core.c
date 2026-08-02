@@ -1,6 +1,5 @@
 #include "forth.h"
 #include "forth_core.h"
-#include "string.h"
 #include "stdlib.h"
 
 char forth_check_sp_underflow(forth_t* vm, unsigned int num)
@@ -103,7 +102,13 @@ void forth_tick(forth_t* vm)
     forth_unit_t* p = vm->current;
     while(p != NULL)
     {
-        if(strncmp(p->name,token,strlen(p->name)) == 0)
+        *(--vm->sp) = (ptrdiff_t)p->name;
+        forth_count(vm);
+        forth_dup(vm);
+        *(--vm->sp) = (ptrdiff_t)token;
+        forth_swap(vm);
+        forth_compare(vm);
+        if(*(vm->sp++) == 0)
         {
             *(--vm->sp) = (ptrdiff_t)p->cfa;
             return;
@@ -566,7 +571,11 @@ void forth_colon(forth_t* vm)
     unit->name = (char*)unit->data;
     unit->next = vm->current;
     vm->current = unit;
-    memcpy((char*)unit->name,(char*)*(vm->sp++),token_len);
+    ptrdiff_t name_addr = *(vm->sp++);
+    *(--vm->sp) = name_addr;
+    *(--vm->sp) = (ptrdiff_t)unit->name;
+    *(--vm->sp) = token_len;
+    forth_cmove(vm);
     *((char*)unit->name + token_len) = '\0';
     vm->here += token_len + 1;
     forth_align(vm);
@@ -706,7 +715,10 @@ void forth_squote(forth_t* vm)
     }
 
     char* str_addr = vm->here;
-    memcpy(str_addr,token,token_len);
+    *(--vm->sp) = (ptrdiff_t)token;
+    *(--vm->sp) = (ptrdiff_t)str_addr;
+    *(--vm->sp) = token_len;
+    forth_cmove(vm);
     if(vm->state == FORTH_STATE_COMPILE)
     {
         vm->here += token_len;
@@ -746,7 +758,10 @@ void forth_dot_quote(forth_t* vm)
     }
 
     char* str_addr = vm->here;
-    memcpy(str_addr,token,token_len);
+    *(--vm->sp) = (ptrdiff_t)token;
+    *(--vm->sp) = (ptrdiff_t)str_addr;
+    *(--vm->sp) = token_len;
+    forth_cmove(vm);
     if(vm->state == FORTH_STATE_COMPILE)
     {
         vm->here += token_len;
@@ -960,7 +975,12 @@ void forth_find(forth_t* vm)
     forth_unit_t* p = vm->current;
     while(p != NULL)
     {
-        if(strcmp(p->name,token) == 0)
+        *(--vm->sp) = (ptrdiff_t)p->name;
+        forth_count(vm);
+        *(--vm->sp) = (ptrdiff_t)token;
+        forth_count(vm);
+        forth_compare(vm);
+        if(*(vm->sp++) == 0)
         {
             if(!(((vm->state == FORTH_STATE_COMPILE) && ((p->flags & FORTH_FLAGS_INTERPRET_ONLY) == FORTH_FLAGS_INTERPRET_ONLY)) ||
                             ((vm->state == FORTH_STATE_INTERPRET) && ((p->flags & FORTH_FLAGS_COMPILE_ONLY) == FORTH_FLAGS_COMPILE_ONLY))))
@@ -1006,7 +1026,10 @@ void forth_create(forth_t* vm)
     unit->name = (char*)unit->data;
     unit->next = vm->current;
     vm->current = unit;
-    memcpy((char*)unit->name,token,token_len);
+    *(--vm->sp) = (ptrdiff_t)token;
+    *(--vm->sp) = (ptrdiff_t)unit->name;
+    *(--vm->sp) = token_len;
+    forth_cmove(vm);
     *((char*)unit->name + token_len) = '\0';
     vm->here += token_len + 1;
     forth_align(vm);
@@ -1028,7 +1051,11 @@ static void forth_does_runtime(forth_t* vm)
     }
     forth_unit_t* unit = vm->current;
     ptrdiff_t* data_ptr = (ptrdiff_t*)unit->name;
-    data_ptr = (ptrdiff_t*)((char*)data_ptr + strlen(unit->name) + 1);
+    *(--vm->sp) = (ptrdiff_t)unit->name;
+    forth_count(vm);
+    forth_swap(vm);
+    forth_drop(vm);
+    data_ptr = (ptrdiff_t*)((char*)data_ptr + *(vm->sp++) + 1);
     *(--vm->sp) = (ptrdiff_t)data_ptr;
     forth_aligned(vm);
     data_ptr = (ptrdiff_t*)*(vm->sp++);
@@ -1093,6 +1120,40 @@ void forth_move(forth_t* vm)
             addr2[i] = addr1[i];
         }
     }
+}
+void forth_cmove(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,3))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    ptrdiff_t num = *(vm->sp++);
+    char* addr2 = (char*)*(vm->sp++);
+    char* addr1 = (char*)*(vm->sp++);
+    if(num > 0)
+    {
+        for(unsigned int i = 0; i < num; i++)
+        {
+            addr2[i] = addr1[i];
+        }
+    }
+}
+void forth_count(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,1))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    forth_dup(vm);
+    char* str = (char*)*(vm->sp++);
+    unsigned int i = 0;
+    while(str[i] != '\0')
+    {
+        i++;
+    }
+    *(--vm->sp) = i;
 }
 void forth_cells(forth_t* vm)
 {
@@ -1417,7 +1478,7 @@ void forth_words(forth_t* vm)
     while(p != NULL)
     {
         *(--vm->sp) = (ptrdiff_t)p->name;
-        *(--vm->sp) = strlen(p->name);
+        forth_count(vm);
         forth_type(vm);
         forth_space(vm);
         p = (forth_unit_t*)p->next;
@@ -1474,7 +1535,13 @@ void forth_postpone(forth_t* vm)
     forth_unit_t* p = vm->current;
     while(p != NULL)
     {
-        if(strncmp(p->name,token,strlen(p->name)) == 0)
+        *(--vm->sp) = (ptrdiff_t)p->name;
+        forth_count(vm);
+        forth_dup(vm);
+        *(--vm->sp) = (ptrdiff_t)token;
+        forth_swap(vm);
+        forth_compare(vm);
+        if(*(vm->sp++) == 0)
         {
             break;
         }
@@ -1632,6 +1699,51 @@ void forth_u_less(forth_t* vm)
     *(vm->sp + 1) = ((size_t)*(vm->sp + 1) < (size_t)*(vm->sp)) ? FORTH_TRUE : FORTH_FALSE;
     vm->sp++; 
 }
+void forth_compare(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,4))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    ptrdiff_t res = 0;
+    ptrdiff_t len2 = *(vm->sp++);
+    char* str2 = (char*)*(vm->sp++);
+    ptrdiff_t len1 = *(vm->sp++);
+    char* str1 = (char*)*(vm->sp++);
+    size_t counter = 0;
+    size_t shorter_len = (len2 > len1) ? len1 : len2;
+    while(counter < shorter_len)
+    {
+        if(str1[counter] != str2[counter])
+        {
+            if(str1[counter] < str2[counter])
+            {
+                res = -1;
+            }
+            else
+            {
+                res = 1;
+            }
+            *(--vm->sp) = res;
+            return;
+        }
+        counter++;
+    }
+    if(len1 < len2)
+    {
+        res = -1;
+    }
+    else if(len1 > len2)
+    {
+        res = 1;
+    }
+    else
+    {
+        res = 0;
+    }
+    *(--vm->sp) = res;
+}
 FORTH_FUNC_REG(forth_exit_unit,FORTH_FLAGS_COMPILE_ONLY | FORTH_FLAGS_IMMEDIATE,forth_exit_compile,"EXIT",NULL);
 FORTH_FUNC_REG(forth_create_unit,0,forth_create,"CREATE",&forth_exit_unit);
 FORTH_FUNC_REG(forth_find_unit,0,forth_find,"FIND",&forth_create_unit);
@@ -1643,7 +1755,10 @@ FORTH_FUNC_REG(forth_cells_unit,0,forth_cells,"CELLS",&forth_aligned_unit);
 FORTH_FUNC_REG(forth_cells_plus_unit,0,forth_cell_plus,"CELL+",&forth_cells_unit);
 FORTH_FUNC_REG(forth_allot_unit,0,forth_allot,"ALLOT",&forth_cells_plus_unit);
 FORTH_FUNC_REG(forth_move_unit,0,forth_move,"MOVE",&forth_allot_unit);
-FORTH_FUNC_REG(forth_comma_unit,0,forth_comma,",",&forth_move_unit);
+FORTH_FUNC_REG(forth_count_unit,0,forth_count,"COUNT",&forth_move_unit);
+FORTH_FUNC_REG(forth_cmove_unit,0,forth_cmove,"CMOVE",&forth_count_unit);
+FORTH_FUNC_REG(forth_compare_unit,0,forth_compare,"COMPARE",&forth_cmove_unit);
+FORTH_FUNC_REG(forth_comma_unit,0,forth_comma,",",&forth_compare_unit);
 FORTH_FUNC_REG(forth_tick_unit,0,forth_tick,"'",&forth_comma_unit);
 FORTH_FUNC_REG(forth_execute_unit,0,forth_execute,"EXECUTE",&forth_tick_unit);
 FORTH_FUNC_REG(forth_plus_unit,0,forth_plus,"+",&forth_execute_unit);

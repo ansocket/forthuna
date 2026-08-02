@@ -1376,7 +1376,7 @@ TEST_F(CoreTests, move_test) {
     // }
     // return res;
     static int i = 0; 
-    const char* input_string = "MOVE \n : TEST_STR S\" abcde\" ; VARIABLE CP_STR TEST_STR CP_STR SWAP DUP ALLOT MOVE TEST_STR SWAP DROP CP_STR + 0 SWAP C! CP_STR";
+    const char* input_string = "CMOVE \n : TEST_STR S\" abcde\" ; VARIABLE CP_STR TEST_STR CP_STR SWAP DUP ALLOT CMOVE TEST_STR SWAP DROP CP_STR + 0 SWAP C! CP_STR";
     return input_string[i++];
         });
   forth_process(&vm);

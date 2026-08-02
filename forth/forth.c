@@ -1,6 +1,6 @@
 #include "forth.h"
 #include "forth_core.h"
-#include "string.h"
+
 extern const forth_unit_t* FORTH_ADDR;
 
 int forth_init(forth_t* vm, forth_init_t* init_desc)
@@ -78,8 +78,7 @@ int forth_process(forth_t* vm)
     {
         if(vm->status & FORTH_STATUS_NOTFOUND)
         {
-            *(vm->sp - 1) = strlen((char*)*vm->sp);
-            vm->sp--;
+            forth_count(vm);
             forth_type(vm);
             forth_send_report(vm," IS NOTFOUND");
         }
@@ -198,11 +197,12 @@ int forth_reg_input_cb(forth_t* vm, forth_input_t cb)
 }
 int forth_send_report(forth_t* vm, const char* string)
 {
-    if(vm->output_cb != NULL)
+    unsigned int counter = 0;
+    if((vm->output_cb != NULL) && (string != NULL))
     {
-        for(unsigned int i = 0; i < strlen(string); i++)
+        while(string[counter] != '\0')
         {
-            vm->output_cb(string[i]);
+            vm->output_cb(string[counter++]);
         }
         vm->output_cb('\n');
     }
