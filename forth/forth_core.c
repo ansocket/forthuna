@@ -1,6 +1,5 @@
 #include "forth.h"
 #include "forth_core.h"
-#include "stdlib.h"
 
 char forth_check_sp_underflow(forth_t* vm, unsigned int num)
 {
@@ -185,31 +184,31 @@ void forth_evaluate(forth_t* vm)
         }
         else
         {
-            char* end;
-            char* token = (char*)*(vm->sp);
-            char sign = 0;
-            if(token[0] == '-')
-            {
-                token++;
-                sign = 1;
-            }
-            size_t result = strtoul(token, &end, vm->base); /* TODO: replace no libc */
-            
-            if(*end == 0)
+            ptrdiff_t len;
+            char* str;
+            ptrdiff_t res;
+            forth_dup(vm);
+            *(--vm->sp) = 0;
+            forth_swap(vm);
+            forth_count(vm);
+            forth_to_number(vm);
+            len = *(vm->sp++);
+            str = (char*)*(vm->sp++);
+            res = *(vm->sp++);
+            if(len == 0)
             {
                 forth_drop(vm);
                 if(vm->state == FORTH_STATE_INTERPRET)
                 {
-                    *(--vm->sp) = (ptrdiff_t)((sign) ? (__SIZE_MAX__ - result + 1) : result);
+                    *(--vm->sp) = res;
                 }
                 else
                 {
                     *((ptrdiff_t*)vm->here) = (ptrdiff_t)forth_push;
                     vm->here += sizeof(ptrdiff_t);
-                    *((ptrdiff_t*)vm->here) = (ptrdiff_t)((sign) ? (__SIZE_MAX__ - result + 1) : result);
+                    *((ptrdiff_t*)vm->here) = res;
                     vm->here += sizeof(ptrdiff_t);
                 }
-                
             }
             else
             {
@@ -1155,6 +1154,84 @@ void forth_count(forth_t* vm)
     }
     *(--vm->sp) = i;
 }
+void forth_to_number(forth_t* vm)
+{
+    if(forth_check_sp_underflow(vm,3))
+    {
+        vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
+        return;
+    }
+    ptrdiff_t len = *(vm->sp++);
+    char* str = (char*)*(vm->sp++);
+    ptrdiff_t res = *(vm->sp++);
+    unsigned_cell_double temp = res;
+    char minus = 0;
+    while(*str == ' ') 
+    {
+        len--;
+        str++;
+        if(len == 0)
+        {
+            /*error*/
+            break;
+        }
+    }
+    if(*str == '-')
+    {
+        minus = 1;
+        len--;
+        str++;
+    }
+    while(len > 0)
+    {
+        char digit = 0xff;
+        if((*str >= '0') && (*str <= '9'))
+        {
+            digit = *str - '0';
+        }
+        else if(vm->base > 10)
+        {
+            if((*str >= 'a') && (*str <= 'z'))
+            {
+                digit = *str - 'a' + 10;
+            }
+            else if((*str >= 'A') && (*str <= 'Z'))
+            {
+                digit = *str - 'A' + 10;
+            }
+        }
+        else
+        {
+            /*error*/
+            break;
+        }
+        if(digit > (vm->base - 1))
+        {
+            /* error */
+            break;
+        }
+        else
+        {
+            temp = temp*vm->base + digit;
+            if(temp > __SIZE_MAX__)
+            {
+                /* error*/
+                break;
+            }
+        }
+        len--;
+        str++;
+    }
+    res = (size_t)temp;
+    if(minus)
+    {
+        res = -res;
+    }
+    *(--vm->sp) = res;
+    *(--vm->sp) = (ptrdiff_t)str;
+    *(--vm->sp) = len;
+    
+}
 void forth_cells(forth_t* vm)
 {
     if(forth_check_sp_underflow(vm,1))
@@ -1757,7 +1834,8 @@ FORTH_FUNC_REG(forth_allot_unit,0,forth_allot,"ALLOT",&forth_cells_plus_unit);
 FORTH_FUNC_REG(forth_move_unit,0,forth_move,"MOVE",&forth_allot_unit);
 FORTH_FUNC_REG(forth_count_unit,0,forth_count,"COUNT",&forth_move_unit);
 FORTH_FUNC_REG(forth_cmove_unit,0,forth_cmove,"CMOVE",&forth_count_unit);
-FORTH_FUNC_REG(forth_compare_unit,0,forth_compare,"COMPARE",&forth_cmove_unit);
+FORTH_FUNC_REG(forth_to_number_unit,0,forth_to_number,">NUMBER",&forth_cmove_unit);
+FORTH_FUNC_REG(forth_compare_unit,0,forth_compare,"COMPARE",&forth_to_number_unit);
 FORTH_FUNC_REG(forth_comma_unit,0,forth_comma,",",&forth_compare_unit);
 FORTH_FUNC_REG(forth_tick_unit,0,forth_tick,"'",&forth_comma_unit);
 FORTH_FUNC_REG(forth_execute_unit,0,forth_execute,"EXECUTE",&forth_tick_unit);
