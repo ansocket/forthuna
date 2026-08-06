@@ -3,6 +3,8 @@
 #include "custom_set.h"
 
 char memory[4096];
+ptrdiff_t stack[32];
+ptrdiff_t rstack[32];
 forth_t vm;
 
 static char input_cb()
@@ -22,8 +24,10 @@ int main(int argc, char** argv)
 {
     forth_init_t init_desc = 
     {
-        .full_memory = (ptrdiff_t*)memory,
-        .full_memory_cells = 4096/sizeof(ptrdiff_t),
+        .memory = (ptrdiff_t*)memory,
+        .memory_cells = 4096/sizeof(ptrdiff_t),
+        .stack = stack,
+        .rstack = rstack,
         .sp_cells = 32, 
         .rsp_cells = 32,
         .tib_bytes = 1024

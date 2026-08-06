@@ -605,8 +605,8 @@ void forth_fetch(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-    ptrdiff_t* addr = (ptrdiff_t*)*(vm->sp++);
-    *(--vm->sp) = *addr;
+    size_t* addr = (ptrdiff_t*)*(vm->sp++);
+    *(--vm->sp) = (ptrdiff_t)*addr;
 }
 void forth_plus_store(forth_t* vm)
 {

@@ -10,11 +10,15 @@ class CoreTests : public testing::Test {
   // should define it if you need to initialize the variables.
   // Otherwise, this can be skipped.
   void SetUp() override {
-    this->memory = (ptrdiff_t*)malloc(4096);
+    this->memory = new ptrdiff_t[4096/sizeof(ptrdiff_t)];
+    this->stack = new ptrdiff_t[32];
+    this->rstack = new ptrdiff_t[32];
     forth_init_t init_desc = 
     {
-      .full_memory = this->memory,
-      .full_memory_cells = 4096/sizeof(ptrdiff_t),
+      .memory = this->memory,
+      .stack = this->stack,
+      .rstack = this->rstack,
+      .memory_cells = 4096/sizeof(ptrdiff_t),
       .sp_cells = 32, 
       .rsp_cells = 32,
       .tib_bytes = 1024
@@ -27,10 +31,18 @@ class CoreTests : public testing::Test {
   // you don't have to provide it.
   //
   virtual void TearDown() {
-    free(this->memory);
+    delete [] this->memory;
+    delete [] this->stack;
+    delete [] this->rstack;
+    
   }
 
+  // ptrdiff_t memory[4096/sizeof(ptrdiff_t)];
+  // ptrdiff_t stack[32];
+  // ptrdiff_t rstack[32];
   ptrdiff_t* memory;
+  ptrdiff_t* stack;
+  ptrdiff_t* rstack;
   forth vm;
 };
 

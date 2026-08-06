@@ -80,8 +80,10 @@ typedef struct forth_unit
 
 typedef struct forth_init
 {
-    ptrdiff_t* full_memory;
-    unsigned int full_memory_cells;
+    ptrdiff_t* memory;
+    ptrdiff_t* stack;
+    ptrdiff_t* rstack;
+    unsigned int memory_cells;
     unsigned int sp_cells;
     unsigned int rsp_cells;
     unsigned int tib_bytes;
@@ -111,7 +113,7 @@ typedef struct forth
     char* tib;
     unsigned int in;
     int status;
-    char base;
+    ptrdiff_t base;
     char* source;
     forth_state_t state;
     ptrdiff_t i;
