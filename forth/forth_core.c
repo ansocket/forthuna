@@ -185,7 +185,6 @@ void forth_evaluate(forth_t* vm)
         else
         {
             ptrdiff_t len;
-            char* str;
             ptrdiff_t res;
             forth_dup(vm);
             *(--vm->sp) = 0;
@@ -193,7 +192,7 @@ void forth_evaluate(forth_t* vm)
             forth_count(vm);
             forth_to_number(vm);
             len = *(vm->sp++);
-            str = (char*)*(vm->sp++);
+            vm->sp++;
             res = *(vm->sp++);
             if(len == 0)
             {
@@ -605,7 +604,7 @@ void forth_fetch(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-    size_t* addr = (ptrdiff_t*)*(vm->sp++);
+    size_t* addr = (size_t*)*(vm->sp++);
     *(--vm->sp) = (ptrdiff_t)*addr;
 }
 void forth_plus_store(forth_t* vm)
