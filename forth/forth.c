@@ -62,8 +62,8 @@ int forth_process(forth_t* vm)
                 vm->output_cb('\b');
                 vm->output_cb(' ');
                 vm->output_cb('\b');
-                continue;
             }
+            continue;
         }
         if(ch == '\n')
         {
