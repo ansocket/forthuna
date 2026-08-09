@@ -260,7 +260,8 @@ void forth_key(forth_t* vm)
         vm->status |= FORTH_STATUS_INPUT_ERROR;
         return;
     }
-    *(--vm->sp) = vm->input_cb();
+    char ch = 0;
+    *(--vm->sp) = vm->input_cb(&ch,1);
 }
 void forth_accept(forth_t* vm)
 {
@@ -269,27 +270,15 @@ void forth_accept(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
-
     ptrdiff_t max_len = *(vm->sp++);
     char* addr = (char*)*(vm->sp++);
-    ptrdiff_t count = 0;
     if(vm->input_cb == NULL) 
     {
         vm->status |= FORTH_STATUS_INPUT_ERROR;
         return;
     }
-    while(max_len)
-    {
-        char ch = vm->input_cb();
-        if(ch == '\0')
-        {
-            break;
-        }
-        addr[count] = ch;
-        count++;
-        max_len--;
-    }
-    *(--vm->sp) = count;
+    *(--vm->sp) = (ptrdiff_t)addr;
+    *(--vm->sp) = (ptrdiff_t)vm->input_cb(addr,max_len);
 }
 void forth_plus(forth_t* vm)
 {
@@ -790,9 +779,10 @@ void forth_emit(forth_t* vm)
         vm->status |= FORTH_STATUS_STACK_UNDERFLOW;
         return;
     }
+    char ch = (char)*(vm->sp++);
     if(vm->output_cb != NULL)
     {
-        vm->output_cb((char)*(vm->sp++));
+        vm->output_cb(&ch,1);
     }
 }
 void forth_cr(forth_t* vm)
@@ -818,12 +808,9 @@ void forth_type(forth_t* vm)
     }
     const unsigned int len = *(vm->sp++);
     const char * str = (char*)*(vm->sp++);
-    for(unsigned int i = 0; i < len; i++)
+    if(vm->output_cb != NULL)
     {
-        if(vm->output_cb != NULL)
-        {
-            vm->output_cb(str[i]);
-        }
+        vm->output_cb(str,len);
     }
 
 }

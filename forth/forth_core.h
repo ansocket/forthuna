@@ -22,6 +22,7 @@ void forth_compare(forth_t* vm);
 void forth_count(forth_t* vm);
 void forth_dup(forth_t* vm);
 void forth_to_number(forth_t* vm);
+void forth_accept(forth_t* vm);
 #ifdef __cplusplus
 }
 #endif

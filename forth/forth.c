@@ -15,6 +15,7 @@ int forth_init(forth_t* vm, forth_init_t* init_desc)
     vm->here = (char*)vm->memory + init_desc->tib_bytes;
     vm->current = (forth_unit_t*)FORTH_ADDR;
     vm->tib = (char*)vm->memory;
+    vm->tib_size = init_desc->tib_bytes;
     vm->in = 0;
     vm->status = 0;
     vm->base = 10;
@@ -30,49 +31,9 @@ int forth_process(forth_t* vm)
     vm->in = 0;
     vm->status = 0;
     if(vm->input_cb == NULL) return -1;
-    char ch;
-    int ch_counter = 0;
-    do
-    {
-        forth_key(vm);
-        if((vm->status & FORTH_STATUS_INPUT_ERROR) == FORTH_STATUS_INPUT_ERROR)
-        {
-            break;
-        }
-        ch = *(vm->sp++);
-        if(vm->local_echo && vm->output_cb)
-        {
-            if(ch == '\0') 
-            {
-                vm->output_cb('\n');
-            }
-            else
-            {
-                vm->output_cb(ch);
-            }
-        }
-        if(ch == '\x7F')
-        {
-            if(ch_counter > 0)
-            {
-                ch_counter--;
-            }
-            if(vm->local_echo && vm->output_cb)
-            {
-                vm->output_cb('\b');
-                vm->output_cb(' ');
-                vm->output_cb('\b');
-            }
-            continue;
-        }
-        if(ch == '\n')
-        {
-            break;
-        }
-        vm->tib[ch_counter++] = ch;
-    }while(ch != '\0');
-    *(--vm->sp) = (ptrdiff_t)vm->tib;
-    *(--vm->sp) = ch_counter;
+    *(--vm->sp) = vm->tib;
+    *(--vm->sp) = vm->tib_size;
+    forth_accept(vm);
     forth_evaluate(vm);
     if(vm->status != 0)
     {
@@ -123,6 +84,7 @@ int forth_process(forth_t* vm)
         }
         
     }
+    forth_send_report(vm,"\n");
     return 0;
 }
 
@@ -200,11 +162,12 @@ int forth_send_report(forth_t* vm, const char* string)
     unsigned int counter = 0;
     if((vm->output_cb != NULL) && (string != NULL))
     {
-        while(string[counter] != '\0')
+        unsigned int len = 0;
+        while(string[len] != '\0')
         {
-            vm->output_cb(string[counter++]);
+            len++;
         }
-        vm->output_cb('\n');
+        vm->output_cb(string,len);
     }
     return 0;
 }

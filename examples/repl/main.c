@@ -25,18 +25,44 @@ ptrdiff_t stack[32];
 ptrdiff_t rstack[32];
 forth_t vm;
 
-static char input_cb()
+static int input_cb(char* data, int maxlen)
 {
-    char res =  getchar();
-    if(res == '\n') 
+    int res = 0;
+    while(1)
     {
-        res = '\0';
+        char ch = getchar();
+        putchar(ch);
+        if((ch == '\n') || ((ch == '\0')))
+        {
+            ch = '\0';
+            data[res++] = ch;
+            break;
+        }
+        else if((ch == '\b') || (ch == '\x7F'))
+        {
+            if(res > 0)
+            {
+                res--;
+                putchar('\b');
+                putchar(' ');
+                putchar('\b');
+            }
+            continue;
+        }
+        else
+        {
+            data[res] = ch;
+        }
+        res++;
     }
     return res;
 } 
-static void output_cb(char ch)
+static void output_cb(char* data, int len)
 {
-    putchar(ch);
+    for(int i = 0; i < len; i++)
+    {
+        putchar(data[i]);
+    }
 }
 int main(int argc, char** argv)
 {
@@ -49,13 +75,12 @@ int main(int argc, char** argv)
         .rstack = rstack,
         .sp_cells = 32, 
         .rsp_cells = 32,
-        .tib_bytes = 1024,
-        .local_echo = 1
+        .tib_bytes = 1024
     };
     forth_init(&vm,&init_desc);
     forth_reg_input_cb(&vm,input_cb);
     forth_reg_output_cb(&vm, output_cb);
-    forth_send_report(&vm, "Forthuna REPL. Enjoy!");
+    forth_send_report(&vm, "Forthuna REPL. Enjoy!\n");
     while(1)
     {
         forth_process(&vm);

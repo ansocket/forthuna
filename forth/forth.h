@@ -65,8 +65,8 @@ typedef unsigned long unsigned_cell_double;
 
 typedef struct forth forth_t;
 typedef struct forth_unit forth_unit_t;
-typedef char (*forth_input_t)();
-typedef void (*forth_output_t)(char ch);
+typedef int (*forth_input_t)(char* data, int maxlen);
+typedef void (*forth_output_t)(char* data, int len);
 typedef void (*forth_function_t)(forth_t* vm);
 
 typedef struct forth_unit
@@ -111,6 +111,7 @@ typedef struct forth
     char* here;
     forth_unit_t* current;
     char* tib;
+    unsigned int tib_size;
     unsigned int in;
     int status;
     ptrdiff_t base;
