@@ -57,7 +57,7 @@ static int input_cb(char* data, int maxlen)
     }
     return res;
 } 
-static void output_cb(char* data, int len)
+static void output_cb(const char* data, int len)
 {
     for(int i = 0; i < len; i++)
     {

@@ -31,7 +31,7 @@ int forth_process(forth_t* vm)
     vm->in = 0;
     vm->status = 0;
     if(vm->input_cb == NULL) return -1;
-    *(--vm->sp) = vm->tib;
+    *(--vm->sp) = (ptrdiff_t)vm->tib;
     *(--vm->sp) = vm->tib_size;
     forth_accept(vm);
     forth_evaluate(vm);

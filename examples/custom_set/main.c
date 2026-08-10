@@ -1,27 +1,72 @@
 #include "stdio.h"
 #include "forth.h"
 #include "custom_set.h"
+#include "termios.h"
 
+static struct termios stored_settings;
+
+void setup_terminal(void)
+{
+	struct termios new_settings;
+
+	tcgetattr(0,&stored_settings);
+
+	new_settings = stored_settings;
+
+	new_settings.c_lflag &= (~ICANON & ~ECHO);
+	new_settings.c_cc[VTIME] = 0;
+	new_settings.c_cc[VMIN] = 1;
+
+	tcsetattr(0,TCSANOW,&new_settings);
+	return;
+}
 char memory[4096];
 ptrdiff_t stack[32];
 ptrdiff_t rstack[32];
 forth_t vm;
 
-static char input_cb()
+static int input_cb(char* data, int maxlen)
 {
-    char res =  getchar();
-    if(res == '\n') 
+    int res = 0;
+    while(1)
     {
-        res = '\0';
+        char ch = getchar();
+        putchar(ch);
+        if((ch == '\n') || ((ch == '\0')))
+        {
+            ch = '\0';
+            data[res++] = ch;
+            break;
+        }
+        else if((ch == '\b') || (ch == '\x7F'))
+        {
+            if(res > 0)
+            {
+                res--;
+                putchar('\b');
+                putchar(' ');
+                putchar('\b');
+            }
+            continue;
+        }
+        else
+        {
+            data[res] = ch;
+        }
+        res++;
     }
     return res;
 } 
-static void output_cb(char ch)
+static void output_cb(const char* data, int len)
 {
-    putchar(ch);
+    for(int i = 0; i < len; i++)
+    {
+        putchar(data[i]);
+    }
 }
 int main(int argc, char** argv)
 {
+    setup_terminal();
     forth_init_t init_desc = 
     {
         .memory = (ptrdiff_t*)memory,
@@ -34,10 +79,9 @@ int main(int argc, char** argv)
     };
     forth_init(&vm,&init_desc);
     forth_add_dictionary(&vm,custom_set_start,custom_set_bridge);
-    
     forth_reg_input_cb(&vm,input_cb);
     forth_reg_output_cb(&vm, output_cb);
-    forth_send_report(&vm, "Forthuna REPL. Enjoy!");
+    forth_send_report(&vm, "Forthuna REPL. Enjoy!\n");
     while(1)
     {
         forth_process(&vm);
