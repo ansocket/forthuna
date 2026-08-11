@@ -54,6 +54,10 @@ static int input_cb(char* data, int maxlen)
             data[res] = ch;
         }
         res++;
+        if(res >= maxlen)
+        {
+            break;
+        }
     }
     return res;
 } 

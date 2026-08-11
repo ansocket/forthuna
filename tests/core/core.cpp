@@ -1227,7 +1227,7 @@ TEST_F(CoreTests, accept) {
     // }
     // return res;
     
-    const char* input_string = "ACCEPT \0 VARIABLE TEST_ACCEPT 10 ALLOT TEST_ACCEPT 10 ACCEPT \0 12345\0 TEST_ACCEPT + 0 SWAP C! TEST_ACCEPT";
+    const char* input_string = "ACCEPT \0 VARIABLE TEST_ACCEPT 10 ALLOT TEST_ACCEPT 10 ACCEPT \0 12345\0 + 0 SWAP C! TEST_ACCEPT";
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
