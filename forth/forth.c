@@ -167,7 +167,7 @@ int forth_send_report(forth_t* vm, const char* string)
         {
             len++;
         }
-        vm->output_cb(string,len);
+        vm->output_cb(vm, string,len);
     }
     return 0;
 }

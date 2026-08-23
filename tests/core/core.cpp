@@ -53,7 +53,7 @@ TEST_F(CoreTests, Init) {
   EXPECT_EQ(vm.sp, vm.sp_start);
 }
 TEST_F(CoreTests, numbers) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     const char* input_string = "DROP \0 1 2";
     static int i = 0;
     strcpy(data,input_string + i);
@@ -70,7 +70,7 @@ TEST_F(CoreTests, numbers) {
 }
 
 TEST_F(CoreTests, execute) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -90,7 +90,7 @@ TEST_F(CoreTests, execute) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, ariph) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -122,7 +122,7 @@ TEST_F(CoreTests, ariph) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, zero_div) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -145,7 +145,7 @@ TEST_F(CoreTests, zero_div) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, rot) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -168,7 +168,7 @@ TEST_F(CoreTests, rot) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, over) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -191,7 +191,7 @@ TEST_F(CoreTests, over) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, shifts) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -215,7 +215,7 @@ TEST_F(CoreTests, shifts) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, xor) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -237,7 +237,7 @@ TEST_F(CoreTests, xor) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, mod) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -262,7 +262,7 @@ TEST_F(CoreTests, mod) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, min_max) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -288,7 +288,7 @@ TEST_F(CoreTests, min_max) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, invert_negate_abs) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -317,7 +317,7 @@ TEST_F(CoreTests, invert_negate_abs) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, constant) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -340,7 +340,7 @@ TEST_F(CoreTests, constant) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, variable) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -361,7 +361,7 @@ TEST_F(CoreTests, variable) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, colon) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -381,7 +381,7 @@ TEST_F(CoreTests, colon) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, c_variable) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -410,7 +410,7 @@ TEST_F(CoreTests, c_variable) {
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
 }
 TEST_F(CoreTests, c_func) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -437,7 +437,7 @@ TEST_F(CoreTests, c_func) {
 }
 TEST_F(CoreTests, c_var_ptr) {
   ptrdiff_t variable = 20;
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -461,7 +461,7 @@ TEST_F(CoreTests, c_var_ptr) {
   EXPECT_EQ(variable,10);
 }
 TEST_F(CoreTests, c_const) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -484,7 +484,7 @@ TEST_F(CoreTests, c_const) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, create_does) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -503,7 +503,7 @@ TEST_F(CoreTests, create_does) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, create_does_var) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -523,7 +523,7 @@ TEST_F(CoreTests, create_does_var) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, if_then) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -542,7 +542,7 @@ TEST_F(CoreTests, if_then) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, if_then_else) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -563,7 +563,7 @@ TEST_F(CoreTests, if_then_else) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, if_then_nested) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -586,7 +586,7 @@ TEST_F(CoreTests, if_then_nested) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, do_loop) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -615,7 +615,7 @@ TEST_F(CoreTests, do_loop) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, do_loop_nested) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -637,7 +637,7 @@ TEST_F(CoreTests, do_loop_nested) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, do_plus_loop) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -661,7 +661,7 @@ TEST_F(CoreTests, do_plus_loop) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, do_plus_loop1) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -683,7 +683,7 @@ TEST_F(CoreTests, do_plus_loop1) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, do_loop_leave) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -712,7 +712,7 @@ TEST_F(CoreTests, do_loop_leave) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, dup) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -741,7 +741,7 @@ TEST_F(CoreTests, dup) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, logic) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -780,7 +780,7 @@ TEST_F(CoreTests, logic) {
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
 }
 TEST_F(CoreTests, recurse) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -800,7 +800,7 @@ TEST_F(CoreTests, recurse) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, swap) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -823,7 +823,7 @@ TEST_F(CoreTests, swap) {
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
 }
 TEST_F(CoreTests, sq) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -846,7 +846,7 @@ TEST_F(CoreTests, sq) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, sq1) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -868,7 +868,7 @@ TEST_F(CoreTests, sq1) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, emit) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -889,7 +889,7 @@ TEST_F(CoreTests, emit) {
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
 }
 TEST_F(CoreTests, type) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -912,7 +912,7 @@ TEST_F(CoreTests, type) {
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
 }
 TEST_F(CoreTests, formatting) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -936,7 +936,7 @@ TEST_F(CoreTests, formatting) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, dot) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -956,7 +956,7 @@ TEST_F(CoreTests, dot) {
 }
 
 TEST_F(CoreTests, multiple_runs) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -978,7 +978,7 @@ TEST_F(CoreTests, multiple_runs) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, begin_while) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1001,7 +1001,7 @@ TEST_F(CoreTests, begin_while) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, begin_while_repeat) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1030,7 +1030,7 @@ TEST_F(CoreTests, begin_while_repeat) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, literal) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1053,7 +1053,7 @@ TEST_F(CoreTests, literal) {
 }
 
 TEST_F(CoreTests, postpone) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1080,7 +1080,7 @@ TEST_F(CoreTests, postpone) {
 }
 
 TEST_F(CoreTests, unloop) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1107,7 +1107,7 @@ TEST_F(CoreTests, unloop) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, marker) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1130,7 +1130,7 @@ TEST_F(CoreTests, marker) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, s_to_d) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1153,7 +1153,7 @@ TEST_F(CoreTests, s_to_d) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, two_store_fetch) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1178,7 +1178,7 @@ TEST_F(CoreTests, two_store_fetch) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, two_dup_swap_over) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1219,7 +1219,7 @@ TEST_F(CoreTests, two_dup_swap_over) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, accept) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1242,7 +1242,7 @@ TEST_F(CoreTests, accept) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, base) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1265,7 +1265,7 @@ TEST_F(CoreTests, base) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, depth) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1290,7 +1290,7 @@ TEST_F(CoreTests, depth) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, zero_less_and_co) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1324,7 +1324,7 @@ TEST_F(CoreTests, zero_less_and_co) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, plus_store) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1347,7 +1347,7 @@ TEST_F(CoreTests, plus_store) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, c_fetch_c_store) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1371,7 +1371,7 @@ TEST_F(CoreTests, c_fetch_c_store) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, char_cmd) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1393,7 +1393,7 @@ TEST_F(CoreTests, char_cmd) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, char_bracket_test) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1415,7 +1415,7 @@ TEST_F(CoreTests, char_bracket_test) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, c_comma_test) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1438,7 +1438,7 @@ TEST_F(CoreTests, c_comma_test) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, char_plus_test) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1460,7 +1460,7 @@ TEST_F(CoreTests, char_plus_test) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, chars_test) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1482,7 +1482,7 @@ TEST_F(CoreTests, chars_test) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, cell_plus_test) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1504,7 +1504,7 @@ TEST_F(CoreTests, cell_plus_test) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, cells_test) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1526,7 +1526,7 @@ TEST_F(CoreTests, cells_test) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, move_test) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1548,7 +1548,7 @@ TEST_F(CoreTests, move_test) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, r_move_fetch) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {
@@ -1571,7 +1571,7 @@ TEST_F(CoreTests, r_move_fetch) {
   EXPECT_EQ(vm.sp,vm.sp_start);
 }
 TEST_F(CoreTests, u_less_test) {
-  forth_reg_input_cb(&vm,[](char* data, int maxlen) -> int {
+  forth_reg_input_cb(&vm,[](forth_t* vm, char* data, int maxlen) -> int {
     // char res =  getchar();
     // if(res == '\0') 
     // {

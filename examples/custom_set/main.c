@@ -25,7 +25,7 @@ ptrdiff_t stack[32];
 ptrdiff_t rstack[32];
 forth_t vm;
 
-static int input_cb(char* data, int maxlen)
+static int input_cb(forth_t* vm, char* data, int maxlen)
 {
     int res = 0;
     while(1)
@@ -57,7 +57,7 @@ static int input_cb(char* data, int maxlen)
     }
     return res;
 } 
-static void output_cb(const char* data, int len)
+static void output_cb(forth_t* vm, const char* data, int len)
 {
     for(int i = 0; i < len; i++)
     {

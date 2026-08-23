@@ -263,7 +263,7 @@ void forth_key(forth_t* vm)
         return;
     }
     char ch = 0;
-    ptrdiff_t len = vm->input_cb(&ch,1);
+    ptrdiff_t len = vm->input_cb(vm, &ch, 1);
     if(len > 0)
     {
         *(--vm->sp) = ch;
@@ -284,7 +284,7 @@ void forth_accept(forth_t* vm)
         return;
     }
     *(--vm->sp) = (ptrdiff_t)addr;
-    *(--vm->sp) = (ptrdiff_t)vm->input_cb(addr,max_len);
+    *(--vm->sp) = (ptrdiff_t)vm->input_cb(vm, addr, max_len);
 }
 void forth_plus(forth_t* vm)
 {
@@ -788,7 +788,7 @@ void forth_emit(forth_t* vm)
     char ch = (char)*(vm->sp++);
     if(vm->output_cb != NULL)
     {
-        vm->output_cb(&ch,1);
+        vm->output_cb(vm, &ch,1);
     }
 }
 void forth_cr(forth_t* vm)
@@ -816,7 +816,7 @@ void forth_type(forth_t* vm)
     const char * str = (char*)*(vm->sp++);
     if(vm->output_cb != NULL)
     {
-        vm->output_cb(str,len);
+        vm->output_cb(vm, str,len);
     }
 
 }
