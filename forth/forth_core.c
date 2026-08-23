@@ -263,7 +263,11 @@ void forth_key(forth_t* vm)
         return;
     }
     char ch = 0;
-    *(--vm->sp) = vm->input_cb(&ch,1);
+    ptrdiff_t len = vm->input_cb(&ch,1);
+    if(len > 0)
+    {
+        *(--vm->sp) = ch;
+    }
 }
 void forth_accept(forth_t* vm)
 {
