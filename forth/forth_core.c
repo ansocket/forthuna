@@ -284,7 +284,9 @@ void forth_accept(forth_t* vm)
         return;
     }
     *(--vm->sp) = (ptrdiff_t)addr;
+    vm->local_echo = 1;
     *(--vm->sp) = (ptrdiff_t)vm->input_cb(vm, addr, max_len);
+    vm->local_echo = 0;
 }
 void forth_plus(forth_t* vm)
 {
