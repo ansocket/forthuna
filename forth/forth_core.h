@@ -24,6 +24,7 @@ void forth_dup(forth_t* vm);
 void forth_to_number(forth_t* vm);
 void forth_accept(forth_t* vm);
 void forth_abs(forth_t* vm);
+char forth_check_sp_underflow(forth_t* vm, unsigned int num);
 #ifdef __cplusplus
 }
 #endif
