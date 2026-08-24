@@ -31,7 +31,10 @@ static int input_cb(forth_t* vm, char* data, int maxlen)
     while(1)
     {
         char ch = getchar();
-        putchar(ch);
+        if(vm->local_echo != 0)
+        {
+            putchar(ch);
+        }
         if((ch == '\n') || ((ch == '\0')))
         {
             ch = '\0';
@@ -43,9 +46,12 @@ static int input_cb(forth_t* vm, char* data, int maxlen)
             if(res > 0)
             {
                 res--;
-                putchar('\b');
-                putchar(' ');
-                putchar('\b');
+                if(vm->local_echo != 0)
+                {
+                    putchar('\b');
+                    putchar(' ');
+                    putchar('\b');
+                }
             }
             continue;
         }

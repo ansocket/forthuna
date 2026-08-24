@@ -87,7 +87,6 @@ typedef struct forth_init
     unsigned int sp_cells;
     unsigned int rsp_cells;
     unsigned int tib_bytes;
-    char local_echo;
 }forth_init_t;
 
 typedef enum

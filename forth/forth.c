@@ -20,8 +20,8 @@ int forth_init(forth_t* vm, forth_init_t* init_desc)
     vm->status = 0;
     vm->base = 10;
     vm->source = vm->tib;
-    vm->local_echo = init_desc->local_echo;
     vm->state = FORTH_STATE_INTERPRET;
+    vm->local_echo = 0;
     return 0;
 }
 
@@ -33,7 +33,9 @@ int forth_process(forth_t* vm)
     if(vm->input_cb == NULL) return -1;
     *(--vm->sp) = (ptrdiff_t)vm->tib;
     *(--vm->sp) = vm->tib_size;
+    vm->local_echo = 1;
     forth_accept(vm);
+    vm->local_echo = 0;
     forth_evaluate(vm);
     if(vm->status != 0)
     {
