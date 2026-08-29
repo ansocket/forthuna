@@ -34,8 +34,6 @@ static int input_cb(forth_t* vm, char* data, int maxlen)
         putchar(ch);
         if((ch == '\n') || ((ch == '\0')))
         {
-            ch = '\0';
-            data[res++] = ch;
             break;
         }
         else if((ch == '\b') || (ch == '\x7F'))

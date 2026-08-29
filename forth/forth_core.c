@@ -149,11 +149,12 @@ void forth_evaluate(forth_t* vm)
     }
     int counter = *(vm->sp++);
     vm->source = (char*)*(vm->sp++); 
-    ptrdiff_t* save_rsp = vm->rsp - 2;
+    ptrdiff_t* save_rsp = vm->rsp - 3;
     *(--vm->rsp) = (ptrdiff_t)vm->in;
     *(--vm->rsp) = (ptrdiff_t)vm->source;
+    *(--vm->rsp) = vm->source_len;
     vm->in = 0;
-    vm->source[counter] = '\0'; 
+    vm->source_len = counter;
     do
     {
         forth_parse_name(vm);
@@ -218,6 +219,7 @@ void forth_evaluate(forth_t* vm)
 
     } while (vm->status == 0);
     vm->rsp = save_rsp;
+    vm->source_len = (*vm->rsp++);
     vm->source = (char*)*(vm->rsp++);
     vm->in = *(vm->rsp++);
 }
@@ -231,7 +233,7 @@ void forth_parse(forth_t* vm)
     const char delim = (char)*(vm->sp++);
     *(--vm->sp) = (ptrdiff_t)&vm->source[vm->in];
     ptrdiff_t counter = 0;
-    while(vm->source[vm->in] != 0)
+    while(vm->in < vm->source_len)
     {
         if(vm->source[vm->in] == delim)
         {
@@ -244,7 +246,7 @@ void forth_parse(forth_t* vm)
 }
 void forth_parse_name(forth_t* vm)
 {
-    while(vm->source[vm->in] != 0)
+    while(vm->source_len > vm->in)
     {
         if(vm->source[vm->in] != ' ')
         {

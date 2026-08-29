@@ -58,7 +58,7 @@ TEST_F(CoreTests, numbers) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -82,7 +82,7 @@ TEST_F(CoreTests, execute) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,3);
@@ -102,7 +102,7 @@ TEST_F(CoreTests, ariph) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -134,7 +134,7 @@ TEST_F(CoreTests, zero_div) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -157,7 +157,7 @@ TEST_F(CoreTests, rot) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -180,7 +180,7 @@ TEST_F(CoreTests, over) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -203,7 +203,7 @@ TEST_F(CoreTests, shifts) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -227,7 +227,7 @@ TEST_F(CoreTests, xor) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -249,7 +249,7 @@ TEST_F(CoreTests, mod) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -274,7 +274,7 @@ TEST_F(CoreTests, min_max) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -300,7 +300,7 @@ TEST_F(CoreTests, invert_negate_abs) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -329,7 +329,7 @@ TEST_F(CoreTests, constant) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -352,7 +352,7 @@ TEST_F(CoreTests, variable) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_INPUT_ERROR);
@@ -373,7 +373,7 @@ TEST_F(CoreTests, colon) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,10);
@@ -393,7 +393,7 @@ TEST_F(CoreTests, c_variable) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
     forth_add_variable(&vm,"VAR1",10);
     forth_add_variable(&vm,"VAR2",20);
@@ -422,7 +422,7 @@ TEST_F(CoreTests, c_func) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_NOTFOUND);
@@ -449,7 +449,7 @@ TEST_F(CoreTests, c_var_ptr) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_NOTFOUND);
@@ -473,7 +473,7 @@ TEST_F(CoreTests, c_const) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_NOTFOUND);
@@ -496,7 +496,7 @@ TEST_F(CoreTests, create_does) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,10);
@@ -515,7 +515,7 @@ TEST_F(CoreTests, create_does_var) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,10);
@@ -535,7 +535,7 @@ TEST_F(CoreTests, if_then) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,30);
@@ -554,7 +554,7 @@ TEST_F(CoreTests, if_then_else) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,20);
@@ -575,7 +575,7 @@ TEST_F(CoreTests, if_then_nested) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,10);
@@ -598,7 +598,7 @@ TEST_F(CoreTests, do_loop) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,9);
@@ -627,7 +627,7 @@ TEST_F(CoreTests, do_loop_nested) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,3);
@@ -649,7 +649,7 @@ TEST_F(CoreTests, do_plus_loop) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++,-1);
@@ -673,7 +673,7 @@ TEST_F(CoreTests, do_plus_loop1) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 4);
@@ -695,7 +695,7 @@ TEST_F(CoreTests, do_loop_leave) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 10);
@@ -724,7 +724,7 @@ TEST_F(CoreTests, dup) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -754,7 +754,7 @@ TEST_F(CoreTests, logic) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, FORTH_FALSE);
@@ -792,7 +792,7 @@ TEST_F(CoreTests, recurse) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 24);
@@ -812,7 +812,7 @@ TEST_F(CoreTests, swap) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 10);
@@ -835,7 +835,7 @@ TEST_F(CoreTests, sq) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 97);
@@ -858,7 +858,7 @@ TEST_F(CoreTests, sq1) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 89);
@@ -880,7 +880,7 @@ TEST_F(CoreTests, emit) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,0);
@@ -901,7 +901,7 @@ TEST_F(CoreTests, type) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,0);
@@ -929,7 +929,7 @@ TEST_F(CoreTests, formatting) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,0);
@@ -948,7 +948,7 @@ TEST_F(CoreTests, dot) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,0);
@@ -968,7 +968,7 @@ TEST_F(CoreTests, multiple_runs) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   forth_process(&vm);
@@ -990,7 +990,7 @@ TEST_F(CoreTests, begin_while) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 6);
@@ -1013,7 +1013,7 @@ TEST_F(CoreTests, begin_while_repeat) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 6);
@@ -1042,7 +1042,7 @@ TEST_F(CoreTests, literal) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1065,7 +1065,7 @@ TEST_F(CoreTests, postpone) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_NOTFOUND);
@@ -1097,7 +1097,7 @@ TEST_F(CoreTests, unloop) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 2);
@@ -1119,7 +1119,7 @@ TEST_F(CoreTests, marker) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   ptrdiff_t current2 = *vm.sp++;
@@ -1142,7 +1142,7 @@ TEST_F(CoreTests, s_to_d) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1165,7 +1165,7 @@ TEST_F(CoreTests, two_store_fetch) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1190,7 +1190,7 @@ TEST_F(CoreTests, two_dup_swap_over) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1231,7 +1231,7 @@ TEST_F(CoreTests, accept) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1254,7 +1254,7 @@ TEST_F(CoreTests, base) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(*vm.sp++, 53);
@@ -1277,7 +1277,7 @@ TEST_F(CoreTests, depth) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   
@@ -1302,7 +1302,7 @@ TEST_F(CoreTests, zero_less_and_co) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1336,7 +1336,7 @@ TEST_F(CoreTests, plus_store) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1359,7 +1359,7 @@ TEST_F(CoreTests, c_fetch_c_store) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1383,7 +1383,7 @@ TEST_F(CoreTests, char_cmd) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_INPUT_ERROR);
@@ -1405,7 +1405,7 @@ TEST_F(CoreTests, char_bracket_test) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_INPUT_ERROR);
@@ -1427,7 +1427,7 @@ TEST_F(CoreTests, c_comma_test) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1450,7 +1450,7 @@ TEST_F(CoreTests, char_plus_test) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1472,7 +1472,7 @@ TEST_F(CoreTests, chars_test) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1494,7 +1494,7 @@ TEST_F(CoreTests, cell_plus_test) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1516,7 +1516,7 @@ TEST_F(CoreTests, cells_test) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1538,7 +1538,7 @@ TEST_F(CoreTests, move_test) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1560,7 +1560,7 @@ TEST_F(CoreTests, r_move_fetch) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);
@@ -1582,7 +1582,7 @@ TEST_F(CoreTests, u_less_test) {
     static int i = 0;
     strcpy(data,input_string + i);
     i += strlen(data) + 1;
-    return strlen(data) + 1;
+    return strlen(data);
         });
   forth_process(&vm);
   EXPECT_EQ(vm.status,FORTH_STATUS_STACK_UNDERFLOW);

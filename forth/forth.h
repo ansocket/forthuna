@@ -115,6 +115,7 @@ typedef struct forth
     int status;
     ptrdiff_t base;
     char* source;
+    ptrdiff_t source_len;
     forth_state_t state;
     ptrdiff_t i;
     ptrdiff_t j;
